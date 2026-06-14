@@ -371,10 +371,10 @@ DEFAULT_ROW = {"target": "Yes", "start_pos": 0, "step": 0, "prob": 0.0}
 def _ensure_rows() -> None:
     if "rows" not in st.session_state:
         st.session_state["rows"] = [dict(DEFAULT_ROW)]
-    # Bumped when we mutate the row list, so widget keys move and old per-row
-    # state can't bleed into a renumbered row.
     if "rows_nonce" not in st.session_state:
         st.session_state["rows_nonce"] = 0
+    if "run_log" not in st.session_state:
+        st.session_state["run_log"] = []
 
 
 def _add_row_cb() -> None:
@@ -409,18 +409,125 @@ def _parse_ints(text: str) -> list[int]:
 # UI
 # ---------------------------------------------------------------------------
 
-st.set_page_config(page_title="DiffusionGemma fill-attack workbench", layout="wide")
+st.set_page_config(
+    page_title="DiffusionGemma fill-attack workbench",
+    page_icon="🧪",
+    layout="wide",
+)
 
-# Tighten the default Streamlit chrome so the form starts near the top of the
-# viewport rather than wasting ~80px of header padding.
+# Tighten the default Streamlit chrome and give the workbench a quieter, more consistent
+# visual rhythm: tighter heading margins, denser metric cards, divider lines that don't
+# scream, and a clearer "active tab" pill.
 st.markdown(
     """
     <style>
-      .block-container {padding-top: 3rem !important; padding-bottom: 2rem !important;}
-      header[data-testid="stHeader"] {height: 3.5rem;}
-      h1, h2, h3, h4 {margin-top: 0.2rem !important; margin-bottom: 0.4rem !important;}
+      .block-container {padding-top: 2rem !important; padding-bottom: 2rem !important;
+                        max-width: 1400px;}
+      header[data-testid="stHeader"] {height: 3rem;}
+      h1 {font-size: 1.55rem !important; font-weight: 600 !important;
+          margin: 0.1rem 0 0.1rem 0 !important;}
+      h2, h3 {margin-top: 0.5rem !important; margin-bottom: 0.3rem !important;}
+      h4 {margin-top: 0.3rem !important; margin-bottom: 0.2rem !important;
+          font-weight: 600 !important; color: #555;}
+      hr {margin: 0.6rem 0 !important; border-color: #eee !important;}
       div[data-testid="stTabs"] {margin-top: 0.2rem;}
+      /* Metric cards: a subtle border so they read as cards rather than floating numbers. */
+      div[data-testid="stMetric"] {
+        background: #fafafa; border: 1px solid #eee; border-radius: 8px;
+        padding: 0.5rem 0.8rem;
+      }
+      div[data-testid="stMetricLabel"] {font-size: 0.78rem !important; color: #666;}
+      /* Top-tab buttons: pill-shaped, with the active one a saturated primary. */
+      div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
+        background: transparent; border: 1px solid #ddd;
+      }
+      /* Code blocks (CLI preview): a touch denser. */
+      pre {padding: 0.6rem !important; font-size: 0.82rem !important;}
+      /* Captions: a hair smaller, calmer color. */
+      div[data-testid="stCaption"] {color: #777 !important; font-size: 0.78rem !important;}
+
+      /* ---- Quieter primary-button palette across the dashboard. The Streamlit default
+         is a saturated red that screams "destructive" -- on a research workbench the
+         primary action is just "go", not "delete". A calm indigo/slate reads as
+         professional without losing emphasis. Applied to ALL primary buttons (tabs,
+         "Run experiment", "New run", "Clear & import"); inactive tabs use a near-
+         transparent secondary look. */
+      button[kind="primary"], button[data-testid="stBaseButton-primary"] {
+        background: #4f46e5 !important; border-color: #4338ca !important;
+        color: #ffffff !important; box-shadow: none !important;
+      }
+      button[kind="primary"]:hover, button[data-testid="stBaseButton-primary"]:hover {
+        background: #4338ca !important; border-color: #3730a3 !important;
+      }
+      /* Tabs in particular: even calmer, since the active tab is a selection state, not
+         a call-to-action. We target the buttons by their explicit `key=` (Streamlit
+         adds `st-key-<key>` as a class to each keyed widget's wrapper div), so this
+         reliably scopes ONLY to the tab buttons -- "Run experiment" and "New run"
+         stay on the indigo primary palette above. */
+      div.st-key-tab_btn_Setup button[kind="primary"],
+      div.st-key-tab_btn_Results button[kind="primary"],
+      div.st-key-tab_btn_Convergence button[kind="primary"],
+      div.st-key-tab_btn_Setup button[data-testid="stBaseButton-primary"],
+      div.st-key-tab_btn_Results button[data-testid="stBaseButton-primary"],
+      div.st-key-tab_btn_Convergence button[data-testid="stBaseButton-primary"] {
+        background: #eef2ff !important; color: #1e293b !important;
+        border: 1px solid #c7d2fe !important; font-weight: 600 !important;
+        box-shadow: none !important;
+      }
+      div.st-key-tab_btn_Setup button[kind="primary"]:hover,
+      div.st-key-tab_btn_Results button[kind="primary"]:hover,
+      div.st-key-tab_btn_Convergence button[kind="primary"]:hover {
+        background: #e0e7ff !important; border-color: #a5b4fc !important;
+        color: #1e293b !important;
+      }
+      div.st-key-tab_btn_Setup button[kind="secondary"],
+      div.st-key-tab_btn_Results button[kind="secondary"],
+      div.st-key-tab_btn_Convergence button[kind="secondary"] {
+        background: transparent !important; color: #6b7280 !important;
+        border: 1px solid #e5e7eb !important; box-shadow: none !important;
+      }
+      div.st-key-tab_btn_Setup button[kind="secondary"]:hover,
+      div.st-key-tab_btn_Results button[kind="secondary"]:hover,
+      div.st-key-tab_btn_Convergence button[kind="secondary"]:hover {
+        background: #f9fafb !important; color: #1f2937 !important;
+      }
+
     </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Page header. Two-line title block: product name + a one-line subtitle, plus a quiet
+# right-aligned model badge -- gives the dashboard a "product" feel rather than a script.
+st.markdown(
+    """
+    <div style="display:flex; align-items:flex-start; justify-content:space-between;
+                padding: 0.4rem 0 0.6rem 0; border-bottom: 1px solid #ececec;
+                margin-bottom: 0.9rem;">
+      <div>
+        <div style="display:flex; align-items:center; gap:0.55rem;">
+          <span style="font-size:1.4rem;">🧪</span>
+          <span style="font-size:0.78rem; letter-spacing:0.16em; color:#6b7280;
+                       text-transform:uppercase; font-weight:600;">
+            Diffusion Steering Lab
+          </span>
+        </div>
+        <div style="font-size:1.45rem; font-weight:600; color:#111827;
+                    margin-top:0.15rem; line-height:1.25;">
+          Fill-Attack Workbench
+        </div>
+        <div style="color:#6b7280; font-size:0.85rem; margin-top:0.15rem; max-width:60ch;">
+          Pin tokens at fixed canvas positions during denoising and watch the model
+          rationalize around them.
+        </div>
+      </div>
+      <div style="text-align:right; color:#9ca3af; font-size:0.75rem;
+                  padding-top:0.4rem; line-height:1.4;">
+        <div style="text-transform:uppercase; letter-spacing:0.1em; font-weight:600;
+                    color:#6b7280;">Model</div>
+        <code style="font-size:0.78rem; color:#374151;">DiffusionGemma-26B-A4B-it</code>
+      </div>
+    </div>
     """,
     unsafe_allow_html=True,
 )
@@ -471,12 +578,49 @@ def _load_experiment_into_state(payload: dict) -> tuple[bool, str]:
     return True, f"loaded {len(new_rows)} target(s) at positions {list(start_pos_v)}"
 
 
-# --- Sidebar (collapsed-by-default panels) ---------------------------------
+def _form_is_dirty() -> bool:
+    """True if the user has typed anything that would be lost by an import.
+
+    "Dirty" means the prompt differs from the default OR any target row holds something
+    other than the empty-default row. Used to decide whether to ask before clobbering.
+    """
+    if st.session_state.get("prompt_text", defaults.prompt) != defaults.prompt:
+        return True
+    rows = st.session_state.get("rows", [])
+    if len(rows) != 1:
+        return True
+    return rows[0] != DEFAULT_ROW
+
+
+def _reset_form_state() -> None:
+    """Wipe the prompt + rows + last-run + uploader nonce back to defaults."""
+    st.session_state["prompt_text"] = defaults.prompt
+    st.session_state["rows"] = [dict(DEFAULT_ROW)]
+    st.session_state["rows_nonce"] = st.session_state.get("rows_nonce", 0) + 1
+    st.session_state["uploader_nonce"] = st.session_state.get("uploader_nonce", 0) + 1
+    st.session_state.pop("last_run", None)
+    st.session_state.pop("pending_import", None)
+
+
+def _clear_setup_only() -> None:
+    """Reset prompt + targets but keep last_run and the run log."""
+    st.session_state["prompt_text"] = defaults.prompt
+    st.session_state["rows"] = [dict(DEFAULT_ROW)]
+    st.session_state["rows_nonce"] = st.session_state.get("rows_nonce", 0) + 1
+    st.session_state["uploader_nonce"] = st.session_state.get("uploader_nonce", 0) + 1
+    st.session_state.pop("pending_import", None)
+
+
+# --- Sidebar -----------------------------------------------------------------
 with st.sidebar:
-    st.markdown("### ▶ Run")
-    submitted = st.button(
-        "Run experiment", type="primary", use_container_width=True,
+    st.button(
+        "🗑 Clear setup",
+        on_click=_clear_setup_only,
+        use_container_width=True,
+        help="Reset prompt and targets back to defaults. "
+             "Last run result and run log are kept.",
     )
+
     if "last_run" in st.session_state:
         st.caption(
             f"Last run: **{len(st.session_state['last_run'].get('decoded', []))}** trace records"
@@ -511,18 +655,39 @@ with st.sidebar:
             value="", help="space-separated extra canvas positions to record",
         )
 
+    run_log = st.session_state.get("run_log", [])
+    if run_log:
+        with st.expander(f"📋 Run log ({len(run_log)})", expanded=False):
+            for i, entry in enumerate(reversed(run_log)):
+                idx = len(run_log) - i
+                held = "✅" if entry["all_held"] else "⚠️"
+                st.markdown(
+                    f"**#{idx}** {held} `{entry['landed']!r}`  \n"
+                    f"<span style='font-size:0.78rem;color:#888'>"
+                    f"positions {entry['positions']} · "
+                    f"{len(entry['decoded'])} trace records</span>",
+                    unsafe_allow_html=True,
+                )
+                with st.expander(f"Prompt #{idx}", expanded=False):
+                    st.caption(entry["prompt"])
+                st.divider()
+
 # --- Top tab nav (styled buttons; programmatic switch on run) ---------------
 TABS = ["Setup", "Results", "Convergence"]
 if "_pending_tab" in st.session_state:
     st.session_state["active_tab"] = st.session_state.pop("_pending_tab")
 active_tab = st.session_state.get("active_tab", "Setup")
 
+# The tab buttons are scoped via their explicit `key="tab_btn_<name>"`; the matching
+# CSS above (`div.st-key-tab_btn_*`) restyles them as a calm pill-strip independent of
+# page-level primary buttons.
 tab_cols = st.columns(len(TABS))
 for col, tab in zip(tab_cols, TABS):
     if col.button(
         tab,
         use_container_width=True,
         type="primary" if tab == active_tab else "secondary",
+        key=f"tab_btn_{tab}",
     ):
         st.session_state["active_tab"] = tab
         st.rerun()
@@ -537,27 +702,91 @@ nonce = st.session_state["rows_nonce"]
 if active_tab == "Setup":
     with st.expander("📂 Load experiment from JSON", expanded=False):
         st.caption(
-            "Upload a Simon's-style experiment JSON (e.g. files in "
-            "`simons_experiments/`); the **prompt** and **targets** below are filled in."
+            "Upload or paste a Simon's-style experiment JSON (e.g. files in "
+            "`simons_experiments/`); the **prompt** and **targets** below are filled in. "
+            "If the form already has work in it, you'll be asked to confirm before "
+            "overwriting."
         )
-        uploaded = st.file_uploader(
-            "experiment file", type=["json"], label_visibility="collapsed",
-            key=f"exp_uploader_{st.session_state.get('uploader_nonce', 0)}",
-        )
-        if uploaded is not None:
-            try:
-                payload = json.loads(uploaded.read().decode("utf-8"))
+        load_tab_upload, load_tab_paste = st.tabs(["📁 Upload file", "📋 Paste JSON"])
+
+        # Stash the candidate payload here; if the form is dirty we render the confirm
+        # buttons next to the controls and only commit on click.
+        def _stage_import(payload: dict, source_label: str) -> None:
+            """Validate then either apply immediately or stash for confirmation."""
+            ok, msg = (True, "ok") if isinstance(payload, dict) else (False, "not an object")
+            if not ok:
+                st.error(f"⚠ {source_label}: {msg}")
+                return
+            if _form_is_dirty():
+                st.session_state["pending_import"] = {
+                    "payload": payload, "source": source_label,
+                }
+                st.rerun()
+            else:
                 ok, msg = _load_experiment_into_state(payload)
                 if ok:
-                    st.session_state["uploader_nonce"] = (
-                        st.session_state.get("uploader_nonce", 0) + 1
-                    )
-                    st.success(f"✅ {uploaded.name} -- {msg}")
+                    st.success(f"✅ {source_label} -- {msg}")
                     st.rerun()
                 else:
-                    st.error(f"⚠ {uploaded.name}: {msg}")
-            except json.JSONDecodeError as e:
-                st.error(f"could not parse JSON: {e}")
+                    st.error(f"⚠ {source_label}: {msg}")
+
+        with load_tab_upload:
+            uploaded = st.file_uploader(
+                "experiment file", type=["json"], label_visibility="collapsed",
+                key=f"exp_uploader_{st.session_state.get('uploader_nonce', 0)}",
+            )
+            if uploaded is not None:
+                try:
+                    payload = json.loads(uploaded.read().decode("utf-8"))
+                    _stage_import(payload, uploaded.name)
+                except json.JSONDecodeError as e:
+                    st.error(f"could not parse JSON: {e}")
+
+        with load_tab_paste:
+            pasted = st.text_area(
+                "paste JSON here",
+                height=140, label_visibility="collapsed",
+                placeholder='{"prompt": "...", "targets": ["..."], "start_pos": [0]}',
+                key=f"exp_paste_{st.session_state.get('uploader_nonce', 0)}",
+            )
+            if st.button("Import pasted JSON", use_container_width=True):
+                if not pasted.strip():
+                    st.warning("Paste a JSON payload first.")
+                else:
+                    try:
+                        payload = json.loads(pasted)
+                        _stage_import(payload, "pasted JSON")
+                    except json.JSONDecodeError as e:
+                        st.error(f"could not parse JSON: {e}")
+
+        # Confirmation prompt: "this will overwrite your current prompt + N target(s)".
+        pending = st.session_state.get("pending_import")
+        if pending is not None:
+            cur_rows = len(st.session_state.get("rows", []))
+            st.warning(
+                f"Importing **{pending['source']}** will **clear your current prompt and "
+                f"{cur_rows} target row(s)**. Continue?"
+            )
+            cc1, cc2, _ = st.columns([1, 1, 4])
+            if cc1.button("✓ Clear & import", type="primary", use_container_width=True):
+                payload = pending["payload"]
+                _reset_form_state()
+                ok, msg = _load_experiment_into_state(payload)
+                st.session_state.pop("pending_import", None)
+                if ok:
+                    st.success(f"✅ {pending['source']} -- {msg}")
+                else:
+                    st.error(f"⚠ {pending['source']}: {msg}")
+                st.rerun()
+            if cc2.button("✕ Cancel", use_container_width=True):
+                st.session_state.pop("pending_import", None)
+                st.rerun()
+
+        # Always-available "wipe the form" button outside the dirty path.
+        st.button(
+            "🆕 Clear all (reset prompt + targets + last run)",
+            on_click=_reset_form_state, use_container_width=True,
+        )
 
     st.markdown("#### Prompt")
     st.text_area(
@@ -598,7 +827,8 @@ if active_tab == "Setup":
             "prob", min_value=0.0, max_value=1.0, value=float(row["prob"]), step=0.05,
             key=f"row_prob_{nonce}_{i}",
             on_change=_persist_row, args=(i, nonce),
-            help="0 = hard pin",
+            help="0 = hard pin (k=1); 0<p<=1 = soft pin, target gets prob p with residual "
+                 "spread top-k proportionally (per-row, mixed values OK).",
         )
         if is_last:
             c_add.button(
@@ -629,6 +859,21 @@ steps = [int(r["step"]) for r in rows if r["target"]]
 probs_per_target = [float(r["prob"]) for r in rows if r["target"]]
 modes = [mode] * len(targets) if targets else list(defaults.mode)
 
+# Catch the silent soft-pin-overridden case: TopKProportionalPolicy collapses to a hard
+# point mass when k <= 1 OR p >= 1.0 (see steering/policies.py). So a row with 0<p<1
+# only behaves as a soft pin if --k in the Advanced panel is also >=2; otherwise the
+# requested probability is silently ignored. Warn loudly when the user has clearly asked
+# for a soft pin but k=1 is going to clobber it.
+_soft_rows = [(i, p) for i, p in enumerate(probs_per_target) if 0.0 < p < 1.0]
+if _soft_rows and int(k) <= 1:
+    st.warning(
+        f"Soft `prob` set on row(s) {[i + 1 for i, _ in _soft_rows]} "
+        f"({', '.join(f'p={p:.2f}' for _, p in _soft_rows)}), but `--k` is {int(k)} in "
+        "Advanced. The policy collapses to a hard point mass when k≤1, so the soft prob "
+        "will be silently ignored. Set `--k` ≥ 2 in the Advanced panel (e.g. 5) to get the "
+        "top-k proportional residual you asked for."
+    )
+
 # CLI preview surfaces a single --prob (the first row's). The actual run still
 # passes per-target probabilities through to the server.
 preview_prob = probs_per_target[0] if probs_per_target and probs_per_target[0] > 0 else None
@@ -655,6 +900,9 @@ if active_tab == "Setup":
                 "ℹ The CLI flag `--prob` is scalar; the run will still pass per-target "
                 f"probs `{probs_per_target}` to the server."
             )
+    submitted = st.button("Run experiment", type="primary", use_container_width=True)
+else:
+    submitted = False
 
 # ---------------------------------------------------------------------------
 # Run. Triggered by the sidebar button regardless of the active tab.
@@ -668,14 +916,16 @@ if submitted:
     tokenizer = _tokenizer()
     where = {"host": host, "port": int(port)}
 
-    # Per-target prob expanded to per-token list (steer_strings's `probabilities`
-    # accepts None / scalar / per-token list).
+    # Per-target prob expanded to per-token list. The frontend treats prob==0.0 as the
+    # "hard pin" sentinel (matching SteerConfig: prob=None means hard pin) and honors any
+    # non-zero value as a literal probability. Mixed rows (some hard, some soft) work
+    # because the build_interventions path accepts per-token None entries.
     if any(p > 0 for p in probs_per_target):
-        per_token_probs: list[float] = []
+        per_token_probs: list[float | None] = []
         for tgt, p in zip(targets, probs_per_target):
             ids = tokenizer.encode(tgt, add_special_tokens=False)
-            per_token_probs.extend([p if p > 0 else 0.0] * len(ids))
-        probabilities_arg: list[float] | None = per_token_probs
+            per_token_probs.extend([(p if p > 0 else None)] * len(ids))
+        probabilities_arg: list[float | None] | None = per_token_probs
     else:
         probabilities_arg = None
 
@@ -724,6 +974,18 @@ if submitted:
             "k": int(k), "prob": probs_per_target, "seed": int(seed),
         },
     }
+    # Append a compact summary to the persistent run log shown in the sidebar.
+    if "run_log" not in st.session_state:
+        st.session_state["run_log"] = []
+    st.session_state["run_log"].append({
+        "prompt": prompt,
+        "landed": landed,
+        "positions": result["positions"],
+        "all_held": result["all_held"],
+        "decoded": decoded,
+        "baseline": base["text"],
+        "steered": result["text"],
+    })
     # Auto-switch to the Results tab on a successful run.
     st.session_state["_pending_tab"] = "Results"
     st.rerun()
@@ -738,10 +1000,35 @@ if active_tab == "Results":
     if last is None:
         st.info("No run yet. Fill in inputs above and click **Run experiment**.")
     else:
-        c1, c2, c3 = st.columns(3)
+        # Header strip: a primary "New run" CTA on the left, a quieter "Clear & start
+        # over" on the right. "New run" returns to Setup with the prompt + targets
+        # intact so iterating is one click; "Clear & start over" wipes everything.
+        rh1, rh2, rh3 = st.columns([1.1, 1.4, 4.5], vertical_alignment="center")
+        if rh1.button("➕ New run", type="primary", use_container_width=True,
+                      help="Go back to Setup. Your prompt and targets are kept so you can "
+                           "tweak them and run again."):
+            st.session_state["_pending_tab"] = "Setup"
+            st.rerun()
+        if rh2.button("🧹 Clear & start over", use_container_width=True,
+                      help="Reset prompt, targets, and the last run -- like opening the app "
+                           "fresh."):
+            _reset_form_state()
+            st.session_state["_pending_tab"] = "Setup"
+            st.rerun()
+        rh3.markdown(
+            "<div style='text-align:right;color:#888;font-size:0.85rem;padding-top:0.4rem'>"
+            f"trace records: <b>{len(last.get('decoded') or [])}</b> · "
+            f"steered positions: <b>{len(last['positions'])}</b></div>",
+            unsafe_allow_html=True,
+        )
+
+        st.divider()
+        c1, c2 = st.columns([1, 2])
         c1.metric("Pinned positions", len(last["positions"]))
-        c2.metric("Landed text", repr(last["landed"]))
-        c3.metric("All pins held?", "✅ yes" if last["all_held"] else "⚠️ no")
+        c2.metric("All pins held?", "✅ yes" if last["all_held"] else "⚠️ no")
+
+        with st.expander(f"Landed text: `{last['landed']!r}`", expanded=False):
+            st.code(last["landed"], language=None)
 
         st.divider()
         L, R = st.columns(2, gap="large")
@@ -754,10 +1041,6 @@ if active_tab == "Results":
 
         st.divider()
         st.markdown("#### Pin survival")
-        st.markdown(
-            f"Steering acted on token positions **{last['positions']}**, and what "
-            f"actually landed there in the final canvas was **`{last['landed']!r}`**."
-        )
         st.caption(
             "If `all_held` is ✅, the attack stuck verbatim. If ⚠️, the model overrode "
             "at least one pin -- inspect the raw interventions table below to see which."
