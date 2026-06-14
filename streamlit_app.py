@@ -201,6 +201,82 @@ def final_rank_frame(decoded: list[dict]) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def enrich_interventions(
+    interventions: list[dict], decoded: list[dict]
+) -> pd.DataFrame:
+    """Join per-step trace confidences onto the interventions table.
+
+    ``p`` and ``k`` on the raw interventions are the **inputs** to the steer (the
+    requested ``--prob`` and top-k width), so they look constant across rows. The
+    interesting "how confident was the model?" signal lives in the trace. For each
+    intervention we look up, at its position:
+
+    - ``nat_top1_token_final`` / ``nat_top1_prob_final`` -- what the unsteered model
+      *wanted* to put there at the last denoising step, and how confident it was
+    - ``nat_prob_of_requested_final`` -- natural prob the model assigned to the token
+      we forced (i.e. how plausible was our pin to the model on its own?)
+    - ``nat_top1_prob_max`` / ``nat_top1_prob_first`` -- range of natural confidence
+      across the whole denoising trajectory at this position (first step vs peak)
+    - ``post_top1_prob_final`` -- post-intervention top-1 prob at the last step
+      (≈1.0 for held hard pins)
+    """
+    df = pd.DataFrame(interventions)
+    if df.empty or not decoded:
+        return df
+
+    by_step = sorted(decoded, key=lambda r: r["step_idx"])
+    last = by_step[-1]
+    first = by_step[0]
+
+    def _lookup(pos: int, requested_id: int) -> dict:
+        out = {
+            "nat_top1_token_final": None,
+            "nat_top1_prob_final": None,
+            "nat_prob_of_requested_final": None,
+            "nat_top1_prob_first": None,
+            "nat_top1_prob_max": None,
+            "post_top1_prob_final": None,
+        }
+        # Natural distribution at the last step.
+        pre_last = (last.get("pre_positions") or {}).get(pos) or []
+        if pre_last:
+            out["nat_top1_token_final"] = pre_last[0]["token"]
+            out["nat_top1_prob_final"] = float(pre_last[0]["prob"])
+            req = next((c for c in pre_last if int(c["id"]) == int(requested_id)), None)
+            if req is not None:
+                out["nat_prob_of_requested_final"] = float(req["prob"])
+
+        # Natural top-1 prob at the first step (what the model thought before any
+        # denoising progress was made at this position).
+        pre_first = (first.get("pre_positions") or {}).get(pos) or []
+        if pre_first:
+            out["nat_top1_prob_first"] = float(pre_first[0]["prob"])
+
+        # Peak natural top-1 prob across the trajectory.
+        peak = 0.0
+        seen_any = False
+        for rec in by_step:
+            pre_pos = (rec.get("pre_positions") or {}).get(pos) or []
+            if pre_pos:
+                seen_any = True
+                peak = max(peak, float(pre_pos[0]["prob"]))
+        if seen_any:
+            out["nat_top1_prob_max"] = peak
+
+        # Post-intervention top-1 prob at the last step (sanity for "did the pin hold loud?").
+        post_last = (last.get("positions") or {}).get(pos) or []
+        if post_last:
+            out["post_top1_prob_final"] = float(post_last[0]["prob"])
+
+        return out
+
+    enriched_rows = []
+    for _, row in df.iterrows():
+        extra = _lookup(int(row["position"]), int(row["requested_id"]))
+        enriched_rows.append({**row.to_dict(), **extra})
+    return pd.DataFrame(enriched_rows)
+
+
 def churn_frame(decoded: list[dict]) -> pd.DataFrame:
     seen: dict[int, set[str]] = {}
     for rec in decoded:
@@ -688,9 +764,22 @@ if active_tab == "Results":
         )
 
         with st.expander("Raw interventions"):
-            st.dataframe(pd.DataFrame(last["interventions"]), use_container_width=True)
+            iv_df = enrich_interventions(last["interventions"], last["decoded"])
+            st.caption(
+                "`p` and `k` are what you **asked for** (the steer's requested prob and "
+                "top-k width) -- that's why they're constant. The `nat_*` columns come from "
+                "the trace and tell you what the **model** thought: "
+                "`nat_top1_token_final` / `nat_top1_prob_final` = what it would have picked "
+                "naturally at the last step and how confident it was; "
+                "`nat_prob_of_requested_final` = the natural probability it assigned to the "
+                "token we pinned (low → we forced something the model didn't believe in); "
+                "`nat_top1_prob_first` / `_max` = how confidence at this position evolved. "
+                "`post_top1_prob_final` is post-intervention top-1 prob (≈1.0 for held pins)."
+            )
+            st.dataframe(iv_df, use_container_width=True)
 
         st.divider()
+        enriched = enrich_interventions(last["interventions"], last["decoded"])
         payload = {
             "prompt": last["prompt"],
             "config": last["config"],
@@ -699,7 +788,7 @@ if active_tab == "Results":
             "landed": last["landed"],
             "positions": last["positions"],
             "all_held": last["all_held"],
-            "interventions": last["interventions"],
+            "interventions": enriched.to_dict(orient="records"),
             "trace_positions": last["trace_positions"],
             "trace": last["decoded"],
         }
