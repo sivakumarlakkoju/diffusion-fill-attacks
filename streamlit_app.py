@@ -655,6 +655,10 @@ with st.sidebar:
             help="`pin` = hard freeze through the end; `perturb` = one-shot nudge then release",
         )
         seed = st.number_input("seed", value=0, step=1)
+        max_new_tokens = st.number_input(
+            "max_new_tokens", min_value=64, max_value=2048, value=512, step=64,
+            help="Maximum number of tokens the model generates. Increase if responses are cut off.",
+        )
         trace = st.checkbox(
             "--trace  (record per-step top-k for the convergence view)", value=True,
         )
@@ -949,7 +953,8 @@ if submitted:
     with st.spinner("Calling server..."):
         try:
             base = steer_call(
-                prompt, tokens=[], positions=[], seed=int(seed), **where
+                prompt, tokens=[], positions=[], seed=int(seed),
+                max_new_tokens=int(max_new_tokens), **where
             )
             steered_positions: list[int] = []
             for tgt, sp in zip(targets, start_pos):
@@ -965,6 +970,7 @@ if submitted:
                 trace=bool(trace), trace_topk=int(trace_topk),
                 trace_positions=tp,
                 seed=int(seed),
+                max_new_tokens=int(max_new_tokens),
                 **where,
             )
         except Exception as exc:  # noqa: BLE001
