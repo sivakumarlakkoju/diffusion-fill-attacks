@@ -56,11 +56,16 @@ def trajectory_frame(decoded: list[dict]) -> pd.DataFrame:
 
 
 def top1_prob_frame(decoded: list[dict]) -> pd.DataFrame:
-    """Top-1 probability over denoising steps, one column per traced position."""
+    """Top-1 probability over denoising steps, one column per traced position.
+
+    Uses pre-intervention (natural) probs when available so the curve reflects the
+    model's genuine confidence rather than the forced distribution.
+    """
     rows: list[dict] = []
     for rec in decoded:
         row = {"step": rec["step_idx"]}
-        for pos, cands in rec["positions"].items():
+        source = rec.get("pre_positions") or rec["positions"]
+        for pos, cands in source.items():
             if cands:
                 row[f"pos {pos}"] = cands[0]["prob"]
         rows.append(row)
@@ -86,11 +91,34 @@ def topk_at_position_frame(decoded: list[dict], position: int, top_k: int) -> pd
 
 
 def distribution_at(decoded: list[dict], step: int, position: int, top_k: int) -> pd.DataFrame:
-    """Top-k token candidates at (step, position), sorted by probability descending."""
+    """Top-k token candidates at (step, position), sorted by probability descending.
+
+    Returns post-intervention probabilities.  For steered positions, a companion
+    ``pre_distribution_at`` call gives the natural (pre-intervention) distribution.
+    """
     rec = next((r for r in decoded if r["step_idx"] == step), None)
     if rec is None:
         return pd.DataFrame()
     cands = rec["positions"].get(position, [])
+    if not cands:
+        return pd.DataFrame()
+    df = pd.DataFrame(cands[:top_k])
+    df["display"] = df["token"].apply(lambda t: t.replace(" ", "·").replace("\n", "⏎") or "∅")
+    return df[["display", "token", "prob"]].sort_values("prob", ascending=False).reset_index(drop=True)
+
+
+def pre_distribution_at(decoded: list[dict], step: int, position: int, top_k: int) -> pd.DataFrame:
+    """Top-k natural (pre-intervention) candidates at (step, position).
+
+    Returns an empty DataFrame when no pre-intervention trace is available.
+    """
+    rec = next((r for r in decoded if r["step_idx"] == step), None)
+    if rec is None:
+        return pd.DataFrame()
+    pre_pos = rec.get("pre_positions")
+    if pre_pos is None:
+        return pd.DataFrame()
+    cands = pre_pos.get(position, [])
     if not cands:
         return pd.DataFrame()
     df = pd.DataFrame(cands[:top_k])
@@ -195,26 +223,59 @@ def _step_canvas_html(decoded: list[dict], step_idx: int, positions: list[int],
     rec = next((r for r in decoded if r["step_idx"] == step_idx), None)
     if rec is None:
         return "<em>(no record at this step)</em>"
+
+    # Positions actively steered *at this specific step*.
+    active_steered: set[int] = set(rec.get("steered_positions", []))
+    pre_pos = rec.get("pre_positions")  # natural distribution before intervention
+
     spans: list[str] = []
     for pos in positions:
         cands = rec["positions"].get(pos, [])
         if not cands:
             spans.append("<span style='opacity:.15;color:#999'>·</span>")
             continue
+
         tok = cands[0]["token"]
-        prob = float(cands[0]["prob"])
-        opacity = 0.15 + 0.85 * prob
-        blur_px = max(0.0, 3.0 * (1.0 - prob))
-        weight = 700 if prob > 0.85 else 400
+        post_prob = float(cands[0]["prob"])
+
+        # Opacity/blur encode the *natural* model confidence when available.
+        if pre_pos is not None:
+            pre_cands = pre_pos.get(pos, [])
+            nat_prob = float(pre_cands[0]["prob"]) if pre_cands else post_prob
+        else:
+            nat_prob = post_prob
+
+        opacity = 0.15 + 0.85 * nat_prob
+        blur_px = max(0.0, 3.0 * (1.0 - nat_prob))
+        weight = 700 if nat_prob > 0.85 else 400
+
+        is_active = pos in active_steered
         if pos == focus:
             color, bg, border = "#b91c1c", "#fee2e2", "1px solid #ef4444"
+        elif is_active:
+            # Green dashed border = steered right now; blue fill = steered position overall.
+            color, bg, border = "#166534", "#dcfce7", "2px dashed #16a34a"
         elif pos in steered_positions:
             color, bg, border = "#1f4ed8", "#eef3ff", "0"
         else:
             color, bg, border = "#111", "transparent", "0"
+
         display = tok.replace(" ", "·").replace("\n", "⏎") or "∅"
+
+        # Tooltip: show natural prob + post-intervention prob when they differ.
+        if pre_pos is not None and is_active:
+            pre_cands = pre_pos.get(pos, [])
+            nat_tok = pre_cands[0]["token"] if pre_cands else "?"
+            nat_p = float(pre_cands[0]["prob"]) if pre_cands else 0.0
+            title = (
+                f"pos {pos} | natural: '{nat_tok.replace(chr(39), '`')}' p={nat_p:.2f}"
+                f" → steered: p={post_prob:.2f}"
+            )
+        else:
+            title = f"pos {pos} · p={nat_prob:.2f}"
+
         spans.append(
-            f"<span title='pos {pos} · p={prob:.2f}' "
+            f"<span title='{title}' "
             f"style='display:inline-block;margin:0 1px;padding:1px 3px;"
             f"opacity:{opacity:.3f};filter:blur({blur_px:.2f}px);"
             f"font-weight:{weight};color:{color};border:{border};border-radius:3px;"
@@ -224,18 +285,48 @@ def _step_canvas_html(decoded: list[dict], step_idx: int, positions: list[int],
 
 
 # ---------------------------------------------------------------------------
-# Input parsing helpers.
+# Dynamic targets state. One row = one --target with its parallel start_pos /
+# step / prob. Add a row with the per-row "+" button; remove with "🗑".
 # ---------------------------------------------------------------------------
+
+DEFAULT_ROW = {"target": "Yes", "start_pos": 0, "step": 0, "prob": 0.0}
+
+
+def _ensure_rows() -> None:
+    if "rows" not in st.session_state:
+        st.session_state["rows"] = [dict(DEFAULT_ROW)]
+    # Bumped when we mutate the row list, so widget keys move and old per-row
+    # state can't bleed into a renumbered row.
+    if "rows_nonce" not in st.session_state:
+        st.session_state["rows_nonce"] = 0
+
+
+def _add_row_cb() -> None:
+    rows = st.session_state["rows"]
+    template = dict(rows[-1]) if rows else dict(DEFAULT_ROW)
+    rows.append(template)
+    st.session_state["rows_nonce"] += 1
+
+
+def _remove_row_cb(idx: int) -> None:
+    rows = st.session_state["rows"]
+    if 0 <= idx < len(rows):
+        rows.pop(idx)
+    st.session_state["rows_nonce"] += 1
+
+
+def _persist_row(idx: int, nonce: int) -> None:
+    """Pull current widget values for row `idx` back into st.session_state['rows']."""
+    row = st.session_state["rows"][idx]
+    row["target"] = st.session_state.get(f"row_target_{nonce}_{idx}", row["target"])
+    row["start_pos"] = int(st.session_state.get(f"row_sp_{nonce}_{idx}", row["start_pos"]))
+    row["step"] = int(st.session_state.get(f"row_step_{nonce}_{idx}", row["step"]))
+    row["prob"] = float(st.session_state.get(f"row_prob_{nonce}_{idx}", row["prob"]))
+
 
 def _parse_ints(text: str) -> list[int]:
     """Space-or-comma-separated ints. Empty string -> []."""
     return [int(x) for x in text.replace(",", " ").split() if x.strip()]
-
-
-def _parse_targets(text: str) -> list[str]:
-    """One target per line; preserve internal whitespace (leading spaces matter).
-    Drops only empty lines."""
-    return [line for line in text.splitlines() if line != ""]
 
 
 # ---------------------------------------------------------------------------
@@ -243,136 +334,284 @@ def _parse_targets(text: str) -> list[str]:
 # ---------------------------------------------------------------------------
 
 st.set_page_config(page_title="DiffusionGemma fill-attack workbench", layout="wide")
-st.title("DiffusionGemma fill-attack workbench")
+
+# Tighten the default Streamlit chrome so the form starts near the top of the
+# viewport rather than wasting ~80px of header padding.
+st.markdown(
+    """
+    <style>
+      .block-container {padding-top: 1rem !important; padding-bottom: 2rem !important;}
+      header[data-testid="stHeader"] {height: 2.5rem;}
+      h1, h2, h3, h4 {margin-top: 0.2rem !important; margin-bottom: 0.4rem !important;}
+      div[data-testid="stTabs"] {margin-top: 0.2rem;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 defaults = SteerConfig()
+_ensure_rows()
+# Persistent prompt -- bound to a session_state key so it survives tab switches
+# and uploads can write into it.
+st.session_state.setdefault("prompt_text", defaults.prompt)
+# Which tab is showing. Set to "Results" right after a successful run so the
+# main view auto-switches; reset by user clicks on the radio.
+st.session_state.setdefault("active_tab", "Setup")
 
-st.markdown("### Inputs")
-st.caption("One field per `example_steer` CLI flag. Submit to run.")
 
-with st.form("steer_form"):
-    c1, c2 = st.columns(2)
+def _load_experiment_into_state(payload: dict) -> tuple[bool, str]:
+    """Mirror an uploaded Simon's-style experiment JSON into session_state.
 
-    with c1:
-        prompt = st.text_area(
-            "--prompt", value=defaults.prompt, height=90,
-            help="user message the model sees; baseline runs against this verbatim",
-        )
-        target_text = st.text_area(
-            "--target  (one per line; leading whitespace is preserved)",
-            value="\n".join(defaults.target), height=90,
-            help="each line becomes one --target argument",
-        )
-        start_pos_text = st.text_input(
-            "--start-pos  (space-separated ints, one per target)",
-            value=" ".join(str(x) for x in defaults.start_pos),
-        )
-        mode_text = st.text_input(
-            "--mode  (pin|perturb, one per target; a single value broadcasts)",
-            value=" ".join(defaults.mode),
-        )
-        step_text = st.text_input(
-            "--step  (space-separated ints, one per target)",
-            value=" ".join(str(x) for x in defaults.step),
-            help="denoising step at which the target fires",
+    Schema (extra fields are ignored):
+      {prompt, targets, start_pos, [modes], [steps]}
+    """
+    if not isinstance(payload, dict):
+        return False, "top-level JSON must be an object"
+    prompt_v = payload.get("prompt")
+    targets_v = payload.get("targets")
+    start_pos_v = payload.get("start_pos")
+    if not isinstance(prompt_v, str) or not prompt_v.strip():
+        return False, "missing or empty `prompt`"
+    if not isinstance(targets_v, list) or not targets_v:
+        return False, "missing or empty `targets` array"
+    if not isinstance(start_pos_v, list) or len(start_pos_v) != len(targets_v):
+        return False, "`start_pos` must be a list the same length as `targets`"
+
+    steps_v = payload.get("steps") or [0] * len(targets_v)
+    if len(steps_v) != len(targets_v):
+        return False, "`steps`, if provided, must match `targets` length"
+
+    new_rows = []
+    for tgt, sp, st_ in zip(targets_v, start_pos_v, steps_v):
+        new_rows.append({
+            "target": str(tgt),
+            "start_pos": int(sp),
+            "step": int(st_),
+            "prob": 0.0,
+        })
+    st.session_state["prompt_text"] = prompt_v
+    st.session_state["rows"] = new_rows
+    st.session_state["rows_nonce"] += 1
+    return True, f"loaded {len(new_rows)} target(s) at positions {list(start_pos_v)}"
+
+
+# --- Sidebar (collapsed-by-default panels) ---------------------------------
+with st.sidebar:
+    st.markdown("### ▶ Run")
+    submitted = st.button(
+        "Run experiment", type="primary", use_container_width=True,
+    )
+    if "last_run" in st.session_state:
+        st.caption(
+            f"Last run: **{len(st.session_state['last_run'].get('decoded', []))}** trace records"
         )
 
-    with c2:
-        prob = st.number_input(
-            "--prob  (per-token probability; 0 = hard pin / leave None)",
-            min_value=0.0, max_value=1.0, value=0.0, step=0.05,
-        )
+    with st.expander("Server", expanded=False):
+        st.caption("Defaults match the bundled `server.py` -- only change if your server moved.")
+        host = st.text_input("--host", value=defaults.host)
+        port = st.number_input("--port", value=defaults.port, step=1)
+
+    with st.expander("Advanced", expanded=False):
+        st.caption("Sampling, mode, tracing, reproducibility.")
         k = st.number_input(
             "--k  (top-k width; 1 = hard freeze)",
             min_value=1, value=defaults.k, step=1,
         )
-        trace = st.checkbox("--trace  (record per-step top-k for the convergence view)", value=True)
+        mode = st.selectbox(
+            "--mode  (applies to every target)",
+            options=["pin", "perturb"], index=0,
+            help="`pin` = hard freeze through the end; `perturb` = one-shot nudge then release",
+        )
+        seed = st.number_input("seed", value=0, step=1)
+        trace = st.checkbox(
+            "--trace  (record per-step top-k for the convergence view)", value=True,
+        )
         trace_topk = st.number_input(
-            "trace topk  (server-side per-step top-k width when --trace is on)",
-            min_value=1, value=defaults.trace_topk, step=1,
+            "trace topk", min_value=1, value=defaults.trace_topk, step=1,
+            help="server-side per-step top-k width when --trace is on",
         )
         trace_positions_text = st.text_input(
             "--trace-positions  (optional; defaults to the steered positions)",
-            value="",
-            help="space-separated extra canvas positions to record",
+            value="", help="space-separated extra canvas positions to record",
         )
-        host = st.text_input("--host", value=defaults.host)
-        port = st.number_input("--port", value=defaults.port, step=1)
-        seed = st.number_input("seed", value=0, step=1)
 
-    submitted = st.form_submit_button(
-        "▶ Run experiment", type="primary", use_container_width=True,
+# --- Top tab nav (radio styled as tabs; programmatic switch on run) -------
+TABS = ["Setup", "Results", "Convergence"]
+active_tab = st.radio(
+    "view", TABS,
+    index=TABS.index(st.session_state.get("active_tab", "Setup")),
+    horizontal=True,
+    label_visibility="collapsed",
+    key="active_tab",
+)
+
+# Pull rows + nonce -- both sit in session_state and are always available.
+rows = st.session_state["rows"]
+nonce = st.session_state["rows_nonce"]
+
+# --- SETUP TAB -------------------------------------------------------------
+if active_tab == "Setup":
+    with st.expander("📂 Load experiment from JSON", expanded=False):
+        st.caption(
+            "Upload a Simon's-style experiment JSON (e.g. files in "
+            "`simons_experiments/`); the **prompt** and **targets** below are filled in."
+        )
+        uploaded = st.file_uploader(
+            "experiment file", type=["json"], label_visibility="collapsed",
+            key=f"exp_uploader_{st.session_state.get('uploader_nonce', 0)}",
+        )
+        if uploaded is not None:
+            try:
+                payload = json.loads(uploaded.read().decode("utf-8"))
+                ok, msg = _load_experiment_into_state(payload)
+                if ok:
+                    st.session_state["uploader_nonce"] = (
+                        st.session_state.get("uploader_nonce", 0) + 1
+                    )
+                    st.success(f"✅ {uploaded.name} -- {msg}")
+                    st.rerun()
+                else:
+                    st.error(f"⚠ {uploaded.name}: {msg}")
+            except json.JSONDecodeError as e:
+                st.error(f"could not parse JSON: {e}")
+
+    st.markdown("#### Prompt")
+    st.text_area(
+        "--prompt", height=90, label_visibility="collapsed", key="prompt_text",
     )
 
-# Parse inputs into a SteerConfig and show the equivalent CLI invocation.
-cfg: SteerConfig | None = None
-parse_error: str | None = None
-try:
-    targets = _parse_targets(target_text)
-    start_pos = _parse_ints(start_pos_text)
-    modes = mode_text.split() or list(defaults.mode)
-    steps = _parse_ints(step_text)
-    trace_positions = (
-        _parse_ints(trace_positions_text) if trace_positions_text.strip() else None
+    st.markdown("#### Targets")
+    st.caption(
+        "One row per `--target`. Click ➕ on the last row to add another target with "
+        "its own `--start-pos`, `--step`, and per-token `--prob`. Click 🗑 to remove a row."
     )
-    cfg = SteerConfig(
-        prompt=prompt,
-        target=targets or list(defaults.target),
-        start_pos=start_pos or list(defaults.start_pos),
-        prob=(prob if prob > 0 else None),
-        k=int(k),
-        mode=modes,
-        step=steps or list(defaults.step),
-        trace=bool(trace),
-        trace_topk=int(trace_topk),
-        trace_positions=trace_positions,
-        host=host,
-        port=int(port),
-    )
-except Exception as exc:  # noqa: BLE001
-    parse_error = str(exc)
 
-if parse_error:
-    st.warning(f"input parse error: {parse_error}")
-elif cfg is not None:
+    if not rows:
+        st.info("No targets. (Refresh the page to restore the default row.)")
+
+    for i, row in enumerate(rows):
+        is_last = i == len(rows) - 1
+        c_t, c_sp, c_st, c_pr, c_add, c_del = st.columns(
+            [4, 1.1, 1.1, 1.1, 0.6, 0.6], vertical_alignment="bottom",
+        )
+        c_t.text_area(
+            f"target #{i + 1}",
+            value=row["target"], height=68,
+            key=f"row_target_{nonce}_{i}",
+            on_change=_persist_row, args=(i, nonce),
+        )
+        c_sp.number_input(
+            "start_pos", min_value=0, step=1, value=int(row["start_pos"]),
+            key=f"row_sp_{nonce}_{i}",
+            on_change=_persist_row, args=(i, nonce),
+        )
+        c_st.number_input(
+            "step", min_value=0, step=1, value=int(row["step"]),
+            key=f"row_step_{nonce}_{i}",
+            on_change=_persist_row, args=(i, nonce),
+        )
+        c_pr.number_input(
+            "prob", min_value=0.0, max_value=1.0, value=float(row["prob"]), step=0.05,
+            key=f"row_prob_{nonce}_{i}",
+            on_change=_persist_row, args=(i, nonce),
+            help="0 = hard pin",
+        )
+        if is_last:
+            c_add.button(
+                "➕", key=f"row_add_{nonce}_{i}", help="add another target",
+                on_click=_add_row_cb, use_container_width=True,
+            )
+        else:
+            c_add.markdown("&nbsp;", unsafe_allow_html=True)
+        if len(rows) > 1:
+            c_del.button(
+                "🗑", key=f"row_del_{nonce}_{i}", help="remove this target",
+                on_click=_remove_row_cb, args=(i,), use_container_width=True,
+            )
+        else:
+            c_del.markdown("&nbsp;", unsafe_allow_html=True)
+        # Mirror current widget values into the row dict so the run picks them up
+        # even if the user never blurred a field.
+        _persist_row(i, nonce)
+
+# --- Build cfg (used for CLI preview + run) -------------------------------
+prompt = st.session_state["prompt_text"]
+trace_positions = (
+    _parse_ints(trace_positions_text) if trace_positions_text.strip() else None
+)
+targets = [r["target"] for r in rows if r["target"]]
+start_pos = [int(r["start_pos"]) for r in rows if r["target"]]
+steps = [int(r["step"]) for r in rows if r["target"]]
+probs_per_target = [float(r["prob"]) for r in rows if r["target"]]
+modes = [mode] * len(targets) if targets else list(defaults.mode)
+
+# CLI preview surfaces a single --prob (the first row's). The actual run still
+# passes per-target probabilities through to the server.
+preview_prob = probs_per_target[0] if probs_per_target and probs_per_target[0] > 0 else None
+cfg = SteerConfig(
+    prompt=prompt,
+    target=targets or list(defaults.target),
+    start_pos=start_pos or list(defaults.start_pos),
+    prob=preview_prob,
+    k=int(k),
+    mode=modes,
+    step=steps or list(defaults.step),
+    trace=bool(trace),
+    trace_topk=int(trace_topk),
+    trace_positions=trace_positions,
+    host=host,
+    port=int(port),
+)
+
+if active_tab == "Setup":
     with st.expander("equivalent CLI command", expanded=False):
         st.code(to_cli(cfg), language="bash")
+        if len({p for p in probs_per_target if p > 0}) > 1:
+            st.caption(
+                "ℹ The CLI flag `--prob` is scalar; the run will still pass per-target "
+                f"probs `{probs_per_target}` to the server."
+            )
 
 # ---------------------------------------------------------------------------
-# Run.
+# Run. Triggered by the sidebar button regardless of the active tab.
 # ---------------------------------------------------------------------------
 
-if submitted and cfg is not None:
-    if not cfg.target:
-        st.error("Need at least one --target.")
-        st.stop()
-    if len(cfg.start_pos) != len(cfg.target):
-        st.error(
-            f"--start-pos length ({len(cfg.start_pos)}) must match "
-            f"--target length ({len(cfg.target)})."
-        )
+if submitted:
+    if not targets:
+        st.error("Need at least one target row with a non-empty target string.")
         st.stop()
 
     tokenizer = _tokenizer()
-    where = {"host": cfg.host, "port": cfg.port}
+    where = {"host": host, "port": int(port)}
+
+    # Per-target prob expanded to per-token list (steer_strings's `probabilities`
+    # accepts None / scalar / per-token list).
+    if any(p > 0 for p in probs_per_target):
+        per_token_probs: list[float] = []
+        for tgt, p in zip(targets, probs_per_target):
+            ids = tokenizer.encode(tgt, add_special_tokens=False)
+            per_token_probs.extend([p if p > 0 else 0.0] * len(ids))
+        probabilities_arg: list[float] | None = per_token_probs
+    else:
+        probabilities_arg = None
 
     with st.spinner("Calling server..."):
         try:
             base = steer_call(
-                cfg.prompt, tokens=[], positions=[], seed=int(seed), **where
+                prompt, tokens=[], positions=[], seed=int(seed), **where
             )
             steered_positions: list[int] = []
-            for tgt, sp in zip(cfg.target, cfg.start_pos):
+            for tgt, sp in zip(targets, start_pos):
                 ids = tokenizer.encode(tgt, add_special_tokens=False)
                 steered_positions.extend(range(sp, sp + len(ids)))
-            tp = sorted(set(steered_positions) | set(cfg.trace_positions or []))
+            tp = sorted(set(steered_positions) | set(trace_positions or []))
 
             result = steer_strings(
-                cfg.prompt, cfg.target, cfg.start_pos, tokenizer,
-                probabilities=cfg.prob,
-                ks=cfg.k,
-                modes=cfg.mode, steps=cfg.step,
-                trace=cfg.trace, trace_topk=cfg.trace_topk,
+                prompt, targets, start_pos, tokenizer,
+                probabilities=probabilities_arg,
+                ks=int(k),
+                modes=modes, steps=steps,
+                trace=bool(trace), trace_topk=int(trace_topk),
                 trace_positions=tp,
                 seed=int(seed),
                 **where,
@@ -385,7 +624,7 @@ if submitted and cfg is not None:
     decoded = decode_trace(result.get("trace", []), tokenizer) if result.get("trace") else []
     landed = "".join(o["actual_token"] for o in result["interventions"])
     st.session_state["last_run"] = {
-        "prompt": cfg.prompt,
+        "prompt": prompt,
         "baseline": base["text"],
         "steered": result["text"],
         "landed": landed,
@@ -394,24 +633,24 @@ if submitted and cfg is not None:
         "interventions": result["interventions"],
         "decoded": decoded,
         "trace_positions": tp,
-        "trace_topk": int(cfg.trace_topk),
+        "trace_topk": int(trace_topk),
         "config": {
-            "targets": cfg.target, "start_pos": cfg.start_pos,
-            "modes": cfg.mode, "steps": cfg.step,
-            "k": cfg.k, "prob": cfg.prob, "seed": int(seed),
+            "targets": targets, "start_pos": start_pos,
+            "modes": modes, "steps": steps,
+            "k": int(k), "prob": probs_per_target, "seed": int(seed),
         },
     }
-    st.toast("Run complete -- see the Results / Convergence tabs.", icon="✅")
+    # Auto-switch to the Results tab on a successful run.
+    st.session_state["active_tab"] = "Results"
+    st.rerun()
 
 last = st.session_state.get("last_run")
 
 # ---------------------------------------------------------------------------
-# Results + Convergence tabs (unchanged behavior).
+# Results + Convergence tabs (rendered when their tab is active).
 # ---------------------------------------------------------------------------
 
-tab_results, tab_converge = st.tabs(["📊 Results", "🌫️ Convergence"])
-
-with tab_results:
+if active_tab == "Results":
     if last is None:
         st.info("No run yet. Fill in inputs above and click **Run experiment**.")
     else:
@@ -463,7 +702,7 @@ with tab_results:
             mime="application/json",
         )
 
-with tab_converge:
+if active_tab == "Convergence":
     if last is None or not last["decoded"]:
         st.info("Run an experiment with --trace enabled to see the convergence view.")
     else:
@@ -516,35 +755,53 @@ with tab_converge:
         with dist_col:
             st.markdown(f"##### Distribution at pos {focus_pos}, step {step}")
             dist = distribution_at(decoded, step, int(focus_pos), trace_topk_used)
+            pre_dist = pre_distribution_at(decoded, step, int(focus_pos), trace_topk_used)
             if dist.empty:
                 st.info("No trace at this (step, position).")
             else:
                 top1_prob = float(dist["prob"].iloc[0])
                 entropy = -sum(p * math.log(max(p, 1e-12)) for p in dist["prob"])
                 m1, m2 = st.columns(2)
-                m1.metric("top-1 prob", f"{top1_prob:.3f}")
-                m2.metric("entropy", f"{entropy:.3f}",
+                m1.metric("top-1 prob (post)", f"{top1_prob:.3f}")
+                m2.metric("entropy (post)", f"{entropy:.3f}",
                           help="lower = more committed; higher = more uncertain")
 
-                chart = (
-                    alt.Chart(dist)
-                    .mark_bar()
-                    .encode(
-                        x=alt.X("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
-                        y=alt.Y("display:N", sort="-x", title=None),
-                        color=alt.Color(
-                            "prob:Q",
-                            scale=alt.Scale(scheme="blues", domain=[0, 1]),
-                            legend=None,
-                        ),
-                        tooltip=[
-                            alt.Tooltip("token:N", title="token"),
-                            alt.Tooltip("prob:Q", title="prob", format=".4f"),
-                        ],
+                if not pre_dist.empty:
+                    st.caption("**After steering** (what sampler saw)")
+
+                def _dist_chart(df, color_scheme):
+                    return (
+                        alt.Chart(df)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
+                            y=alt.Y("display:N", sort="-x", title=None),
+                            color=alt.Color(
+                                "prob:Q",
+                                scale=alt.Scale(scheme=color_scheme, domain=[0, 1]),
+                                legend=None,
+                            ),
+                            tooltip=[
+                                alt.Tooltip("token:N", title="token"),
+                                alt.Tooltip("prob:Q", title="prob", format=".4f"),
+                            ],
+                        )
+                        .properties(height=max(200, 26 * len(df)))
                     )
-                    .properties(height=max(200, 26 * len(dist)))
-                )
+
+                chart = _dist_chart(dist, "blues")
                 st.altair_chart(chart, use_container_width=True)
+
+                if not pre_dist.empty:
+                    st.caption("**Before steering** (natural model distribution)")
+                    pre_top1 = float(pre_dist["prob"].iloc[0])
+                    pre_ent = -sum(p * math.log(max(p, 1e-12)) for p in pre_dist["prob"])
+                    pm1, pm2 = st.columns(2)
+                    pm1.metric("top-1 prob (pre)", f"{pre_top1:.3f}")
+                    pm2.metric("entropy (pre)", f"{pre_ent:.3f}")
+                    pre_chart = _dist_chart(pre_dist, "greens")
+                    st.altair_chart(pre_chart, use_container_width=True)
+
                 st.caption(
                     "Tokens shown with `·` for spaces and `⏎` for newlines so you can "
                     "see whitespace candidates. Scrub the **step** slider above and "
@@ -768,7 +1025,10 @@ with tab_converge:
         st.markdown("#### Film-strip (sampled steps)")
         st.caption(
             "A condensed, scrollable view of the whole denoising loop -- one row per "
-            "sampled step. Same opacity + blur encoding as the main canvas."
+            "sampled step. Opacity + blur encode the **natural** (pre-intervention) model "
+            "confidence. Blue fill = a steered position; green dashed border = actively "
+            "steered at that exact step. Hover any token for its natural p and, for steered "
+            "steps, what the model would have picked naturally vs. what was forced."
         )
         stride = max(1, len(all_steps) // 24)
         sampled = all_steps[::stride]
