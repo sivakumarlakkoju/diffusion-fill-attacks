@@ -315,7 +315,16 @@ def _mix(base: tuple[int, int, int], target: tuple[int, int, int], t: float) -> 
     return f"rgb({r},{g},{b})"
 
 
+def _mix_themed(target: tuple[int, int, int], t: float) -> str:
+    """Like `_mix` but returns a CSS `light-dark(...)` value: blends from white in
+    light mode and from a dark surface in dark mode, so the canvas reads on both
+    themes without re-rendering. The page must opt in via `color-scheme: light dark`.
+    """
+    return f"light-dark({_mix(_CANVAS_WHITE, target, t)}, {_mix(_CANVAS_DARK, target, t)})"
+
+
 _CANVAS_WHITE = (255, 255, 255)
+_CANVAS_DARK = (30, 30, 33)     # dark-mode surface (Streamlit dark base ≈ #1e1e21)
 _CANVAS_GREEN = (22, 163, 74)   # super green at p=1 (confident, natural)
 _CANVAS_BLUE = (37, 99, 235)    # injected / pinned position
 
@@ -333,8 +342,15 @@ def _step_canvas_html(decoded: list[dict], step_idx: int, positions: list[int],
     spans: list[str] = []
     for pos in positions:
         cands = rec["positions"].get(pos, [])
+        # Anchor wraps each cell so a click sets ?focus=N, which the script reads on
+        # rerun to drive the right-pane distribution dropdown. `#canvas-anchor` keeps
+        # the page from jumping back to the top after the rerun.
+        href = f"?focus={pos}#canvas-anchor"
         if not cands:
-            spans.append("<span style='opacity:.25;color:#bbb'>·</span>")
+            spans.append(
+                f"<a href='{href}' style='text-decoration:none;'>"
+                f"<span style='opacity:.4;color:var(--df-muted)'>·</span></a>"
+            )
             continue
 
         tok = cands[0]["token"]
@@ -346,20 +362,23 @@ def _step_canvas_html(decoded: list[dict], step_idx: int, positions: list[int],
         is_pinned = pos in steered_positions or pos in active_steered
         if is_pinned:
             t = max(post_prob, 0.45)
-            bg = _mix(_CANVAS_WHITE, _CANVAS_BLUE, t)
+            bg = _mix_themed(_CANVAS_BLUE, t)
         else:
             t = post_prob
-            bg = _mix(_CANVAS_WHITE, _CANVAS_GREEN, t)
-        txt = "#fff" if t > 0.55 else "#111"
+            bg = _mix_themed(_CANVAS_GREEN, t)
+        # Above ~0.55 mix, the colored fill is dark enough that white text reads well in
+        # both themes; below that we let the surface text color (light or dark mode aware)
+        # take over via `--df-fg`.
+        txt = "#fff" if t > 0.55 else "var(--df-fg)"
         weight = 700 if post_prob > 0.85 else 500
 
         # Border: red = the focused position; dashed blue = steered *this very step*.
         if pos == focus:
-            border = "2px solid #b91c1c"
+            border = "2px solid #ef4444"
         elif pos in active_steered:
-            border = "2px dashed #1d4ed8"
+            border = "2px dashed #60a5fa"
         else:
-            border = "1px solid rgba(0,0,0,0.06)"
+            border = "1px solid var(--df-border)"
 
         # Tooltip: post prob, plus the natural (pre-intervention) token/prob when steered.
         if pre_pos is not None and is_pinned:
@@ -374,10 +393,11 @@ def _step_canvas_html(decoded: list[dict], step_idx: int, positions: list[int],
             title = f"pos {pos} · p={post_prob:.2f}"
 
         spans.append(
+            f"<a href='{href}' style='text-decoration:none;cursor:pointer;'>"
             f"<span title='{title}' "
             f"style='display:inline-block;margin:1px;padding:1px 4px;"
             f"font-weight:{weight};color:{txt};border:{border};border-radius:3px;"
-            f"background:{bg}'>{display}</span>"
+            f"background:{bg}'>{display}</span></a>"
         )
     return "".join(spans)
 
@@ -443,6 +463,63 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+      /* Opt the page in to native CSS theming so `light-dark()` works in inline
+         styles (canvas spans, header card, metric tiles). Streamlit follows the
+         OS / user-chosen theme; this just lets our CSS see which one is active. */
+      :root {
+        color-scheme: light dark;
+        --df-fg: #111827;
+        --df-muted: #6b7280;
+        --df-faint: #9ca3af;
+        --df-border: rgba(0,0,0,0.08);
+        --df-card-bg: #fafafa;
+        --df-card-border: #eee;
+        --df-divider: #ececec;
+        --df-h4: #555;
+        --df-tab-active-bg: #eef2ff;
+        --df-tab-active-fg: #1e293b;
+        --df-tab-active-border: #c7d2fe;
+        --df-tab-active-bg-hover: #e0e7ff;
+        --df-tab-active-border-hover: #a5b4fc;
+        --df-tab-secondary-fg: #6b7280;
+        --df-tab-secondary-border: #e5e7eb;
+        --df-tab-secondary-bg-hover: #f9fafb;
+        --df-tab-secondary-fg-hover: #1f2937;
+        --df-caption: #777;
+        --df-canvas-frame: #e3e3e3;
+        --df-canvas-bg: #fff;
+        --df-strip-bg: #fafafa;
+        --df-strip-row-border: #eee;
+        --df-strip-highlight: #fff7d6;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --df-fg: #e5e7eb;
+          --df-muted: #9ca3af;
+          --df-faint: #6b7280;
+          --df-border: rgba(255,255,255,0.12);
+          --df-card-bg: #1f2024;
+          --df-card-border: #2a2c31;
+          --df-divider: #2a2c31;
+          --df-h4: #cbd5e1;
+          --df-tab-active-bg: #312e81;
+          --df-tab-active-fg: #e0e7ff;
+          --df-tab-active-border: #4338ca;
+          --df-tab-active-bg-hover: #3730a3;
+          --df-tab-active-border-hover: #6366f1;
+          --df-tab-secondary-fg: #9ca3af;
+          --df-tab-secondary-border: #2a2c31;
+          --df-tab-secondary-bg-hover: #1f2024;
+          --df-tab-secondary-fg-hover: #e5e7eb;
+          --df-caption: #9ca3af;
+          --df-canvas-frame: #2a2c31;
+          --df-canvas-bg: #18191c;
+          --df-strip-bg: #18191c;
+          --df-strip-row-border: #2a2c31;
+          --df-strip-highlight: #3a3318;
+        }
+      }
+
       .block-container {padding-top: 2rem !important; padding-bottom: 2rem !important;
                         max-width: 1400px;}
       header[data-testid="stHeader"] {height: 3rem;}
@@ -450,23 +527,25 @@ st.markdown(
           margin: 0.1rem 0 0.1rem 0 !important;}
       h2, h3 {margin-top: 0.5rem !important; margin-bottom: 0.3rem !important;}
       h4 {margin-top: 0.3rem !important; margin-bottom: 0.2rem !important;
-          font-weight: 600 !important; color: #555;}
-      hr {margin: 0.6rem 0 !important; border-color: #eee !important;}
+          font-weight: 600 !important; color: var(--df-h4);}
+      hr {margin: 0.6rem 0 !important; border-color: var(--df-card-border) !important;}
       div[data-testid="stTabs"] {margin-top: 0.2rem;}
       /* Metric cards: a subtle border so they read as cards rather than floating numbers. */
       div[data-testid="stMetric"] {
-        background: #fafafa; border: 1px solid #eee; border-radius: 8px;
-        padding: 0.5rem 0.8rem;
+        background: var(--df-card-bg); border: 1px solid var(--df-card-border);
+        border-radius: 8px; padding: 0.5rem 0.8rem;
       }
-      div[data-testid="stMetricLabel"] {font-size: 0.78rem !important; color: #666;}
+      div[data-testid="stMetricLabel"] {font-size: 0.78rem !important;
+        color: var(--df-muted) !important;}
       /* Top-tab buttons: pill-shaped, with the active one a saturated primary. */
       div[data-testid="stHorizontalBlock"] button[kind="secondary"] {
-        background: transparent; border: 1px solid #ddd;
+        background: transparent; border: 1px solid var(--df-tab-secondary-border);
       }
       /* Code blocks (CLI preview): a touch denser. */
       pre {padding: 0.6rem !important; font-size: 0.82rem !important;}
       /* Captions: a hair smaller, calmer color. */
-      div[data-testid="stCaption"] {color: #777 !important; font-size: 0.78rem !important;}
+      div[data-testid="stCaption"] {color: var(--df-caption) !important;
+        font-size: 0.78rem !important;}
 
       /* ---- Quieter primary-button palette across the dashboard. The Streamlit default
          is a saturated red that screams "destructive" -- on a research workbench the
@@ -492,26 +571,31 @@ st.markdown(
       div.st-key-tab_btn_Setup button[data-testid="stBaseButton-primary"],
       div.st-key-tab_btn_Results button[data-testid="stBaseButton-primary"],
       div.st-key-tab_btn_Convergence button[data-testid="stBaseButton-primary"] {
-        background: #eef2ff !important; color: #1e293b !important;
-        border: 1px solid #c7d2fe !important; font-weight: 600 !important;
-        box-shadow: none !important;
+        background: var(--df-tab-active-bg) !important;
+        color: var(--df-tab-active-fg) !important;
+        border: 1px solid var(--df-tab-active-border) !important;
+        font-weight: 600 !important; box-shadow: none !important;
       }
       div.st-key-tab_btn_Setup button[kind="primary"]:hover,
       div.st-key-tab_btn_Results button[kind="primary"]:hover,
       div.st-key-tab_btn_Convergence button[kind="primary"]:hover {
-        background: #e0e7ff !important; border-color: #a5b4fc !important;
-        color: #1e293b !important;
+        background: var(--df-tab-active-bg-hover) !important;
+        border-color: var(--df-tab-active-border-hover) !important;
+        color: var(--df-tab-active-fg) !important;
       }
       div.st-key-tab_btn_Setup button[kind="secondary"],
       div.st-key-tab_btn_Results button[kind="secondary"],
       div.st-key-tab_btn_Convergence button[kind="secondary"] {
-        background: transparent !important; color: #6b7280 !important;
-        border: 1px solid #e5e7eb !important; box-shadow: none !important;
+        background: transparent !important;
+        color: var(--df-tab-secondary-fg) !important;
+        border: 1px solid var(--df-tab-secondary-border) !important;
+        box-shadow: none !important;
       }
       div.st-key-tab_btn_Setup button[kind="secondary"]:hover,
       div.st-key-tab_btn_Results button[kind="secondary"]:hover,
       div.st-key-tab_btn_Convergence button[kind="secondary"]:hover {
-        background: #f9fafb !important; color: #1f2937 !important;
+        background: var(--df-tab-secondary-bg-hover) !important;
+        color: var(--df-tab-secondary-fg-hover) !important;
       }
 
     </style>
@@ -524,30 +608,30 @@ st.markdown(
 st.markdown(
     """
     <div style="display:flex; align-items:flex-start; justify-content:space-between;
-                padding: 0.4rem 0 0.6rem 0; border-bottom: 1px solid #ececec;
+                padding: 0.4rem 0 0.6rem 0; border-bottom: 1px solid var(--df-divider);
                 margin-bottom: 0.9rem;">
       <div>
         <div style="display:flex; align-items:center; gap:0.55rem;">
           <span style="font-size:1.4rem;">🧪</span>
-          <span style="font-size:0.78rem; letter-spacing:0.16em; color:#6b7280;
+          <span style="font-size:0.78rem; letter-spacing:0.16em; color:var(--df-muted);
                        text-transform:uppercase; font-weight:600;">
             Diffusion Steering Lab
           </span>
         </div>
-        <div style="font-size:1.45rem; font-weight:600; color:#111827;
+        <div style="font-size:1.45rem; font-weight:600; color:var(--df-fg);
                     margin-top:0.15rem; line-height:1.25;">
           Fill-Attack Workbench
         </div>
-        <div style="color:#6b7280; font-size:0.85rem; margin-top:0.15rem; max-width:60ch;">
+        <div style="color:var(--df-muted); font-size:0.85rem; margin-top:0.15rem; max-width:60ch;">
           Pin tokens at fixed canvas positions during denoising and watch the model
           rationalize around them.
         </div>
       </div>
-      <div style="text-align:right; color:#9ca3af; font-size:0.75rem;
+      <div style="text-align:right; color:var(--df-faint); font-size:0.75rem;
                   padding-top:0.4rem; line-height:1.4;">
         <div style="text-transform:uppercase; letter-spacing:0.1em; font-weight:600;
-                    color:#6b7280;">Model</div>
-        <code style="font-size:0.78rem; color:#374151;">DiffusionGemma-26B-A4B-it</code>
+                    color:var(--df-muted);">Model</div>
+        <code style="font-size:0.78rem; color:var(--df-fg);">DiffusionGemma-26B-A4B-it</code>
       </div>
     </div>
     """,
@@ -569,6 +653,10 @@ def _load_experiment_into_state(payload: dict) -> tuple[bool, str]:
 
     Schema (extra fields are ignored):
       {prompt, targets, start_pos, [modes], [steps]}
+
+    Both `start_pos` and `steps` accept either a list (one entry per target) or a
+    scalar (broadcast to every target). `steps` defaults to all-zeros when absent
+    or null.
     """
     if not isinstance(payload, dict):
         return False, "top-level JSON must be an object"
@@ -579,25 +667,45 @@ def _load_experiment_into_state(payload: dict) -> tuple[bool, str]:
         return False, "missing or empty `prompt`"
     if not isinstance(targets_v, list) or not targets_v:
         return False, "missing or empty `targets` array"
-    if not isinstance(start_pos_v, list) or len(start_pos_v) != len(targets_v):
-        return False, "`start_pos` must be a list the same length as `targets`"
 
-    steps_v = payload.get("steps") or [0] * len(targets_v)
-    if len(steps_v) != len(targets_v):
-        return False, "`steps`, if provided, must match `targets` length"
+    n = len(targets_v)
 
-    new_rows = []
-    for tgt, sp, st_ in zip(targets_v, start_pos_v, steps_v):
-        new_rows.append({
-            "target": str(tgt),
-            "start_pos": int(sp),
-            "step": int(st_),
-            "prob": 0.0,
-        })
+    def _broadcast(name: str, val, default):
+        """Accept list-of-len-n, scalar (broadcast), or None (default-broadcast)."""
+        if val is None:
+            return [default] * n, None
+        if isinstance(val, list):
+            if len(val) == 1:
+                return [val[0]] * n, None
+            if len(val) != n:
+                return None, f"`{name}` length {len(val)} does not match `targets` length {n}"
+            return val, None
+        # scalar (int/float) -> broadcast
+        return [val] * n, None
+
+    sp_list, err = _broadcast("start_pos", start_pos_v, 0)
+    if err:
+        return False, err
+    steps_list, err = _broadcast("steps", payload.get("steps"), 0)
+    if err:
+        return False, err
+
+    try:
+        new_rows = [
+            {"target": str(tgt), "start_pos": int(sp), "step": int(st_), "prob": 0.0}
+            for tgt, sp, st_ in zip(targets_v, sp_list, steps_list)
+        ]
+    except (TypeError, ValueError) as exc:
+        return False, f"could not coerce start_pos/steps to ints: {exc}"
+
     st.session_state["prompt_text"] = prompt_v
+    # Streamlit caches widget state by key; the prompt text_area is bound to
+    # `_prompt_widget`, so we must drop it for the new `prompt_text` value to
+    # actually appear in the UI on rerun.
+    st.session_state.pop("_prompt_widget", None)
     st.session_state["rows"] = new_rows
     st.session_state["rows_nonce"] += 1
-    return True, f"loaded {len(new_rows)} target(s) at positions {list(start_pos_v)}"
+    return True, f"loaded {n} target(s) at positions {sp_list}"
 
 
 def _normalize_decoded(decoded: list[dict]) -> list[dict]:
@@ -780,7 +888,7 @@ with st.sidebar:
                 held = "✅" if entry["all_held"] else "⚠️"
                 st.markdown(
                     f"**#{idx}** {held} `{entry['landed']!r}`  \n"
-                    f"<span style='font-size:0.78rem;color:#888'>"
+                    f"<span style='font-size:0.78rem;color:var(--df-muted)'>"
                     f"positions {entry['positions']} · "
                     f"{len(entry['decoded'])} trace records</span>",
                     unsafe_allow_html=True,
@@ -1153,7 +1261,8 @@ if active_tab == "Results":
         st.info("No run yet. Fill in inputs above and click **Run experiment**.")
     else:
         st.markdown(
-            "<div style='text-align:right;color:#888;font-size:0.85rem;padding-bottom:0.4rem'>"
+            "<div style='text-align:right;color:var(--df-muted);font-size:0.85rem;"
+            "padding-bottom:0.4rem'>"
             f"trace records: <b>{len(last.get('decoded') or [])}</b> · "
             f"steered positions: <b>{len(last['positions'])}</b></div>",
             unsafe_allow_html=True,
@@ -1162,20 +1271,28 @@ if active_tab == "Results":
         st.divider()
         c1, c2 = st.columns(2)
         c1.markdown(
-            f"<div style='background:#fafafa;border:1px solid #eee;border-radius:8px;"
-            f"padding:0.4rem 0.8rem'>"
-            f"<div style='font-size:0.78rem;color:#666'>Pinned positions</div>"
-            f"<div style='font-size:1.1rem;font-weight:600'>{len(last['positions'])}</div>"
+            f"<div style='background:var(--df-card-bg);border:1px solid var(--df-card-border);"
+            f"border-radius:8px;padding:0.4rem 0.8rem'>"
+            f"<div style='font-size:0.78rem;color:var(--df-muted)'>Pinned positions</div>"
+            f"<div style='font-size:1.1rem;font-weight:600;color:var(--df-fg)'>"
+            f"{len(last['positions'])}</div>"
             f"</div>",
             unsafe_allow_html=True,
         )
-        held_color = "#166534" if last["all_held"] else "#92400e"
-        held_bg = "#dcfce7" if last["all_held"] else "#fef3c7"
-        held_text = "✅ yes" if last["all_held"] else "⚠️ no"
+        # Held-state pill keeps a saturated tint in both themes; we just darken the
+        # background and lighten the text in dark mode for readability.
+        if last["all_held"]:
+            held_bg = "light-dark(#dcfce7, #14532d)"
+            held_color = "light-dark(#166534, #bbf7d0)"
+            held_text = "✅ yes"
+        else:
+            held_bg = "light-dark(#fef3c7, #78350f)"
+            held_color = "light-dark(#92400e, #fde68a)"
+            held_text = "⚠️ no"
         c2.markdown(
-            f"<div style='background:{held_bg};border:1px solid #eee;border-radius:8px;"
-            f"padding:0.4rem 0.8rem'>"
-            f"<div style='font-size:0.78rem;color:#666'>All pins held?</div>"
+            f"<div style='background:{held_bg};border:1px solid var(--df-card-border);"
+            f"border-radius:8px;padding:0.4rem 0.8rem'>"
+            f"<div style='font-size:0.78rem;color:var(--df-muted)'>All pins held?</div>"
             f"<div style='font-size:1.1rem;font-weight:600;color:{held_color}'>{held_text}</div>"
             f"</div>",
             unsafe_allow_html=True,
@@ -1255,16 +1372,44 @@ if active_tab == "Convergence":
             "tokens at one focused position -- watch it narrow from spread-out to spike."
         )
 
+        # If the user clicked a token in the canvas/film-strip, the rerun arrives
+        # with ?focus=N. Consume it into session_state so the selectbox below picks
+        # it up, then clear the query param so a future browser refresh doesn't
+        # silently re-pin the same focus.
+        qp_focus = st.query_params.get("focus")
+        if qp_focus is not None:
+            try:
+                wanted = int(qp_focus)
+            except (TypeError, ValueError):
+                wanted = None
+            if wanted is not None and wanted in all_positions:
+                st.session_state["focus_pos_widget"] = wanted
+            try:
+                del st.query_params["focus"]
+            except KeyError:
+                pass
+
+        # Anchor target so the post-click rerun keeps the canvas in view rather than
+        # scrolling back to the top of the page.
+        st.markdown("<div id='canvas-anchor'></div>", unsafe_allow_html=True)
+
         ctop1, ctop2 = st.columns([3, 2])
         step = ctop1.slider(
             "denoising step",
             min_value=int(all_steps[0]), max_value=int(all_steps[-1]),
             value=int(all_steps[-1]), step=1,
         )
+        # Default the dropdown to the last position on first render; thereafter it's
+        # driven by `focus_pos_widget` (either user-selected or set from ?focus=N).
+        if "focus_pos_widget" not in st.session_state:
+            st.session_state["focus_pos_widget"] = all_positions[-1]
+        elif st.session_state["focus_pos_widget"] not in all_positions:
+            # Loaded a different run -- positions changed; fall back to the last one.
+            st.session_state["focus_pos_widget"] = all_positions[-1]
         focus_pos = ctop2.selectbox(
             "focused position (drives the right-pane distribution)",
             all_positions,
-            index=len(all_positions) - 1,
+            key="focus_pos_widget",
             format_func=lambda p: f"pos {p}" + ("  (steered)" if p in steered_set else ""),
         )
 
@@ -1274,20 +1419,22 @@ if active_tab == "Convergence":
             st.markdown(f"##### Canvas at step {step}")
             html = _step_canvas_html(decoded, step, all_positions, steered_set, focus=int(focus_pos))
             st.markdown(
-                f"<div style='border:1px solid #e3e3e3;border-radius:8px;padding:18px;"
-                f"background:#fff;font-family:monospace;font-size:18px;line-height:1.9;"
-                f"min-height:160px'>{html}</div>",
+                f"<div style='border:1px solid var(--df-canvas-frame);border-radius:8px;"
+                f"padding:18px;background:var(--df-canvas-bg);font-family:monospace;"
+                f"font-size:18px;line-height:1.9;min-height:160px;color:var(--df-fg)'>"
+                f"{html}</div>",
                 unsafe_allow_html=True,
             )
             st.caption(
                 "Each glyph is the most-likely token at one position. "
-                "<span style='background:rgb(220,245,230);padding:0 3px;border-radius:3px'>"
+                "<span style='background:rgb(220,245,230);color:#111;padding:0 3px;"
+                "border-radius:3px'>"
                 "Green</span> intensity ∝ its probability — pale = uncertain, "
                 "<span style='background:rgb(22,163,74);color:#fff;padding:0 3px;border-radius:3px'>"
                 "super green</span> = committed (p≈1). "
                 "<span style='background:rgb(37,99,235);color:#fff;padding:0 3px;border-radius:3px'>"
                 "Blue</span> = injected/pinned (dashed border = steered this very step). "
-                "<span style='color:#b91c1c'>Red box</span> = the focused position.",
+                "<span style='color:#ef4444'>Red box</span> = the focused position.",
                 unsafe_allow_html=True,
             )
 
@@ -1612,17 +1759,18 @@ if active_tab == "Convergence":
         rows_html = []
         for s in sampled:
             canvas = _step_canvas_html(decoded, s, all_positions, steered_set, focus=int(focus_pos))
-            highlight = "background:#fff7d6;" if s == step else ""
+            highlight = "background:var(--df-strip-highlight);" if s == step else ""
             rows_html.append(
                 f"<div style='display:flex;align-items:center;gap:10px;"
-                f"padding:4px 6px;border-bottom:1px solid #eee;{highlight}"
-                f"font-family:monospace;font-size:13px'>"
-                f"<div style='width:64px;color:#888;font-size:11px'>step {s:>3}</div>"
+                f"padding:4px 6px;border-bottom:1px solid var(--df-strip-row-border);"
+                f"{highlight}font-family:monospace;font-size:13px;color:var(--df-fg)'>"
+                f"<div style='width:64px;color:var(--df-muted);font-size:11px'>"
+                f"step {s:>3}</div>"
                 f"<div>{canvas}</div></div>"
             )
         st.markdown(
-            "<div style='border:1px solid #e3e3e3;border-radius:6px;padding:4px;"
-            "background:#fafafa;max-height:480px;overflow-y:auto'>"
+            "<div style='border:1px solid var(--df-canvas-frame);border-radius:6px;padding:4px;"
+            "background:var(--df-strip-bg);max-height:480px;overflow-y:auto'>"
             + "".join(rows_html)
             + "</div>",
             unsafe_allow_html=True,
