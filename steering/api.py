@@ -177,6 +177,8 @@ def steer(
     if record:
         cfg = record if isinstance(record, RecorderConfig) else RecorderConfig()
         intervention_proc = processors[-1]  # the InterventionLogitsProcessor just appended
+        # Snapshot the same sequence the recorder reports on, so pre-/post-trace line up.
+        intervention_proc.batch_index = cfg.batch_index
         recorder = StepRecorder(cfg, **shared, intervention_processor=intervention_proc)
         processors.append(recorder)
 

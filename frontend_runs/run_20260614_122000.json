@@ -1,0 +1,3216 @@
+{
+  "timestamp": "20260614_122000",
+  "prompt": "Count up from one: 1, 2, 3,",
+  "config": {
+    "targets": [
+      "Yes"
+    ],
+    "start_pos": [
+      0
+    ],
+    "modes": [
+      "pin"
+    ],
+    "steps": [
+      0
+    ],
+    "k": 1,
+    "prob": [
+      0.0
+    ],
+    "seed": 0
+  },
+  "baseline": "4, 5, 6, 7, 8, 9, 10...",
+  "steered": "Yes, 5, 6, 7, 8, 9, 10...",
+  "landed": "Yes",
+  "positions": [
+    0
+  ],
+  "all_held": true,
+  "interventions": [
+    {
+      "position": 0,
+      "requested_id": 10784,
+      "label": 10784,
+      "actual_id": 10784,
+      "actual_token": "Yes",
+      "held": true,
+      "p": 1.0,
+      "k": 1
+    }
+  ],
+  "trace_positions": [
+    0
+  ],
+  "trace_topk": 5,
+  "trace": [
+    {
+      "step_idx": 0,
+      "cur_step": 48,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.62771
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.27073
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0331
+          },
+          {
+            "id": 236770,
+            "token": "1",
+            "prob": 0.02721
+          },
+          {
+            "id": 236787,
+            "token": ":",
+            "prob": 0.01311
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 1,
+      "cur_step": 47,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.64589
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.2934
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.04953
+          },
+          {
+            "id": 1390,
+            "token": "...",
+            "prob": 0.00699
+          },
+          {
+            "id": 236770,
+            "token": "1",
+            "prob": 0.00163
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 2,
+      "cur_step": 46,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99663
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00258
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00068
+          },
+          {
+            "id": 236761,
+            "token": ".",
+            "prob": 1e-05
+          },
+          {
+            "id": 236810,
+            "token": "5",
+            "prob": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 3,
+      "cur_step": 45,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.72339
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.2565
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01372
+          },
+          {
+            "id": 236800,
+            "token": "3",
+            "prob": 0.00211
+          },
+          {
+            "id": 236770,
+            "token": "1",
+            "prob": 0.00135
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 4,
+      "cur_step": 44,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.89266
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.06184
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.03996
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00524
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.0001
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 5,
+      "cur_step": 43,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.85615
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.08998
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.05083
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0026
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.00021
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 6,
+      "cur_step": 42,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.88482
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.05859
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.05406
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00237
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 3e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 7,
+      "cur_step": 41,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.95838
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.04122
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00031
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 8e-05
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 8,
+      "cur_step": 40,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.91195
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.07439
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.01291
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00072
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 9,
+      "cur_step": 39,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.96972
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.03012
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00014
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 1e-05
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 10,
+      "cur_step": 38,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.92917
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.0701
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0006
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.00012
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 11,
+      "cur_step": 37,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.96694
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.0287
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00416
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00019
+          },
+          {
+            "id": 17043,
+            "token": "Best",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 12,
+      "cur_step": 36,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.95133
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.0486
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 7e-05
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 13,
+      "cur_step": 35,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.90891
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.05976
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0301
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00116
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 4e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 14,
+      "cur_step": 34,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.86127
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.12446
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.01406
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00018
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 1e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 15,
+      "cur_step": 33,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.98378
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01577
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0004
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 4e-05
+          },
+          {
+            "id": 17043,
+            "token": "Best",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 16,
+      "cur_step": 32,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.9823
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01756
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00013
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 1e-05
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 17,
+      "cur_step": 31,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.87485
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.1072
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.01761
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00031
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 2e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 18,
+      "cur_step": 30,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.94393
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.05381
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00218
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 4e-05
+          },
+          {
+            "id": 236810,
+            "token": "5",
+            "prob": 2e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 19,
+      "cur_step": 29,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.8681
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.12971
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00203
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00015
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 20,
+      "cur_step": 28,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.83266
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.12092
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.0451
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00117
+          },
+          {
+            "id": 236810,
+            "token": "5",
+            "prob": 6e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 21,
+      "cur_step": 27,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.95558
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.03341
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.01092
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 9e-05
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 22,
+      "cur_step": 26,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99387
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00613
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 1e-05
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 3771,
+            "token": "No",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 23,
+      "cur_step": 25,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.614
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.30359
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.08188
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00049
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 2e-05
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 24,
+      "cur_step": 24,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.89865
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.0926
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00823
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00052
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 25,
+      "cur_step": 23,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.9673
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.02198
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01026
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.00046
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 26,
+      "cur_step": 22,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99218
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00741
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00041
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 27,
+      "cur_step": 21,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.87116
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.12863
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00018
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 2e-05
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 28,
+      "cur_step": 20,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.9792
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.02071
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0001
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 238215,
+            "token": "\uc57c",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 29,
+      "cur_step": 19,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.95593
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.0439
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00016
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 30,
+      "cur_step": 18,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99647
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00242
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00106
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 4e-05
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 31,
+      "cur_step": 17,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99837
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00157
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 6e-05
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 238215,
+            "token": "\uc57c",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 32,
+      "cur_step": 16,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99255
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00705
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00038
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 2e-05
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 33,
+      "cur_step": 15,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.9903
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00957
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00012
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 1e-05
+          },
+          {
+            "id": 238215,
+            "token": "\uc57c",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 34,
+      "cur_step": 14,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.90663
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.08798
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00536
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 3e-05
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 35,
+      "cur_step": 13,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99726
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00187
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00085
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 2e-05
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 36,
+      "cur_step": 12,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.98126
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01731
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00142
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 2e-05
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 37,
+      "cur_step": 11,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.9801
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01873
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00116
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 1e-05
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 38,
+      "cur_step": 10,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99894
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00105
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 8438,
+            "token": " Yes",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 39,
+      "cur_step": 9,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99715
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00284
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 1e-05
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 40,
+      "cur_step": 8,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99937
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00062
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 2e-05
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 236810,
+            "token": "5",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 41,
+      "cur_step": 7,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.98268
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01731
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 42,
+      "cur_step": 6,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99416
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00572
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00011
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 236810,
+            "token": "5",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 43,
+      "cur_step": 5,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99817
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00183
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.0
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 561,
+            "token": "se",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 44,
+      "cur_step": 4,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.98933
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.01062
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 4e-05
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 45,
+      "cur_step": 3,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99685
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00301
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00014
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 46,
+      "cur_step": 2,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99492
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00385
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00123
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 1018,
+            "token": "**",
+            "prob": 0.0
+          }
+        ]
+      }
+    },
+    {
+      "step_idx": 47,
+      "cur_step": 1,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": [
+        0
+      ],
+      "pre_positions": {
+        "0": [
+          {
+            "id": 236812,
+            "token": "4",
+            "prob": 0.99109
+          },
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 0.00856
+          },
+          {
+            "id": 236764,
+            "token": ",",
+            "prob": 0.00035
+          },
+          {
+            "id": 236743,
+            "token": " ",
+            "prob": 0.0
+          },
+          {
+            "id": 13513,
+            "token": "***",
+            "prob": 0.0
+          }
+        ]
+      }
+    }
+  ]
+}

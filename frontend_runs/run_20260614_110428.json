@@ -1,0 +1,1728 @@
+{
+  "timestamp": "20260614_110428",
+  "prompt": "Count up from one: 1, 2, 3,",
+  "config": {
+    "targets": [
+      "Yes"
+    ],
+    "start_pos": [
+      0
+    ],
+    "modes": [
+      "pin"
+    ],
+    "steps": [
+      0
+    ],
+    "k": 1,
+    "prob": [
+      0.0
+    ],
+    "seed": 0
+  },
+  "baseline": "4, 5, 6, 7, 8, 9, 10...",
+  "steered": "Yes, 5, 6, 7, 8, 9, 10...",
+  "landed": "Yes",
+  "positions": [
+    0
+  ],
+  "all_held": true,
+  "interventions": [
+    {
+      "position": 0,
+      "requested_id": 10784,
+      "label": 10784,
+      "actual_id": 10784,
+      "actual_token": "Yes",
+      "held": true,
+      "p": 1.0,
+      "k": 1
+    }
+  ],
+  "trace_positions": [
+    0
+  ],
+  "trace_topk": 5,
+  "trace": [
+    {
+      "step_idx": 0,
+      "cur_step": 48,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 1,
+      "cur_step": 47,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 2,
+      "cur_step": 46,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 3,
+      "cur_step": 45,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 4,
+      "cur_step": 44,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 5,
+      "cur_step": 43,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 6,
+      "cur_step": 42,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 7,
+      "cur_step": 41,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 8,
+      "cur_step": 40,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 9,
+      "cur_step": 39,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 10,
+      "cur_step": 38,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 11,
+      "cur_step": 37,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 12,
+      "cur_step": 36,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 13,
+      "cur_step": 35,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 14,
+      "cur_step": 34,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 15,
+      "cur_step": 33,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 16,
+      "cur_step": 32,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 17,
+      "cur_step": 31,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 18,
+      "cur_step": 30,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 19,
+      "cur_step": 29,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 20,
+      "cur_step": 28,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 21,
+      "cur_step": 27,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 22,
+      "cur_step": 26,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 23,
+      "cur_step": 25,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 24,
+      "cur_step": 24,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 25,
+      "cur_step": 23,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 26,
+      "cur_step": 22,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 27,
+      "cur_step": 21,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 28,
+      "cur_step": 20,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 29,
+      "cur_step": 19,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 30,
+      "cur_step": 18,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 31,
+      "cur_step": 17,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 32,
+      "cur_step": 16,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 33,
+      "cur_step": 15,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 34,
+      "cur_step": 14,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 35,
+      "cur_step": 13,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 36,
+      "cur_step": 12,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 37,
+      "cur_step": 11,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 38,
+      "cur_step": 10,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 39,
+      "cur_step": 9,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 40,
+      "cur_step": 8,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 41,
+      "cur_step": 7,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 42,
+      "cur_step": 6,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 43,
+      "cur_step": 5,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 44,
+      "cur_step": 4,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 45,
+      "cur_step": 3,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 46,
+      "cur_step": 2,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    },
+    {
+      "step_idx": 47,
+      "cur_step": 1,
+      "canvas_idx": 0,
+      "positions": {
+        "0": [
+          {
+            "id": 10784,
+            "token": "Yes",
+            "prob": 1.0
+          },
+          {
+            "id": 2,
+            "token": "<bos>",
+            "prob": 0.0
+          },
+          {
+            "id": 0,
+            "token": "<pad>",
+            "prob": 0.0
+          },
+          {
+            "id": 3,
+            "token": "<unk>",
+            "prob": 0.0
+          },
+          {
+            "id": 1,
+            "token": "<eos>",
+            "prob": 0.0
+          }
+        ]
+      },
+      "steered_positions": []
+    }
+  ]
+}

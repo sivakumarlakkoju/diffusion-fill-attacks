@@ -78,12 +78,20 @@ def _serialize_trace(trace: list[dict] | None) -> list[dict] | None:
     """Turn the recorder's tensor-valued records into JSON-safe nested lists."""
     if trace is None:
         return None
+    # Tensor-valued keys get .tolist()'d; pre_* are the natural (pre-intervention) top-k.
+    tensor_keys = (
+        "argmax", "entropy", "positions", "topk_ids", "topk_probs", "logits",
+        "pre_topk_ids", "pre_topk_probs",
+    )
     out = []
     for r in trace:
         rec = {k: r[k] for k in ("cur_step", "step_idx", "canvas_idx")}
-        for key in ("argmax", "entropy", "positions", "topk_ids", "topk_probs", "logits"):
+        for key in tensor_keys:
             if key in r:
                 rec[key] = r[key].tolist()
+        # steered_positions is already a plain list of ints (which positions were steered).
+        if "steered_positions" in r:
+            rec["steered_positions"] = r["steered_positions"]
         out.append(rec)
     return out
 

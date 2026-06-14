@@ -33,6 +33,7 @@ class SteerConfig:
     start_pos: list[int] = field(default_factory=lambda: [0])
     prob: float | None = None  # per-token probability; None = hard pin
     k: int = 1  # top-k width (1 = hard freeze)
+    seed: int = 0
 
     # When to inject (per target; see PinFrom/PerturbAt schedules).
     mode: list[str] = field(default_factory=lambda: ["pin"])

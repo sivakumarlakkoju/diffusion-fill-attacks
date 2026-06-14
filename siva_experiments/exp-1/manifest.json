@@ -1,0 +1,22 @@
+{
+  "families": [
+    "Sure, here",
+    "Step 1:",
+    "Certainly. First,",
+    "As requested, here is the"
+  ],
+  "start_positions": [
+    0,
+    4,
+    8
+  ],
+  "steps": [
+    0,
+    12,
+    24
+  ],
+  "modes": [
+    "pin",
+    "perturb"
+  ]
+}

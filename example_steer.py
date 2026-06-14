@@ -151,11 +151,18 @@ def steer_strings(
         token_steps.extend([step] * len(ids))
 
     # When tracing, ask the server's per-step recorder to capture top-k tokens+probs.
-    # Default to the steered positions (the interesting ones); recording every canvas
-    # position each step is much heavier and rarely what you want to read back.
+    # `trace_positions="all"` records EVERY canvas position (so the whole sequence's
+    # convergence is visible) -- heavier, but what the convergence view needs. Otherwise
+    # default to the steered positions (the interesting ones), or an explicit list.
     record = None
     if trace:
-        record = {"positions": list(trace_positions) if trace_positions else sorted(set(positions)),
+        if trace_positions == "all":
+            rec_positions = None  # None => the recorder captures the full canvas
+        elif trace_positions:
+            rec_positions = list(trace_positions)
+        else:
+            rec_positions = sorted(set(positions))
+        record = {"positions": rec_positions,
                   "top_k": trace_topk,
                   # Skip the per-step full-canvas argmax/entropy dumps; we only read the
                   # top-k tokens+probs at the traced positions.
@@ -329,7 +336,8 @@ def run_experiment(args: "SteerConfig | argparse.Namespace", tokenizer) -> dict:
 
     # 1. Baseline: what the model says on its own.
     print("\nPROMPT:", args.prompt)
-    base = steer(args.prompt, tokens=[], positions=[], seed=0, **where)
+    seed = getattr(args, "seed", 0)
+    base = steer(args.prompt, tokens=[], positions=[], seed=seed, **where)
     print("baseline:", base["text"])
 
     # 2. Steer the target string(s) into place, tokenized + auto-positioned.
@@ -345,6 +353,7 @@ def run_experiment(args: "SteerConfig | argparse.Namespace", tokenizer) -> dict:
         args.prompt, args.target, args.start_pos, tokenizer,
         probabilities=args.prob, ks=args.k, modes=args.mode, steps=args.step,
         trace=trace, trace_topk=args.trace_topk, trace_positions=args.trace_positions,
+        seed=seed,
         **where,
     )
     # Show the FULL text plus exactly what landed at the pinned positions, so the steered

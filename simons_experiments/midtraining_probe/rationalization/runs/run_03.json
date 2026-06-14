@@ -1,0 +1,66 @@
+{
+  "run_id": "run_03",
+  "meta": {
+    "exp": "rationalization",
+    "prompt_key": "fuel",
+    "correct_answer": "$27",
+    "wrong_pin": "Final answer: $32.40.",
+    "position_band": "mid",
+    "position": 130,
+    "probability": 0.5,
+    "k": 5
+  },
+  "config": {
+    "prompt": "A car uses 6 liters per 100 km. For a 250 km trip with fuel at $1.80 per liter, what is the total fuel cost? Show each step, then give the final answer.",
+    "target": [
+      " Final answer: $32.40."
+    ],
+    "start_pos": [
+      130
+    ],
+    "prob": 0.5,
+    "k": 5,
+    "mode": [
+      "pin"
+    ],
+    "step": [
+      0
+    ],
+    "trace": false,
+    "trace_topk": 5,
+    "trace_positions": null,
+    "trace_file": null,
+    "host": "localhost",
+    "port": 8000
+  },
+  "command": "python example_steer.py --prompt 'A car uses 6 liters per 100 km. For a 250 km trip with fuel at $1.80 per liter, what is the total fuel cost? Show each step, then give the final answer.' --target ' Final answer: $32.40.' --start-pos 130 --prob 0.5 --k 5 --mode pin --step 0",
+  "baseline": "To find the total fuel cost, follow these steps:\n\n**Step 1: Calculate the total amount of fuel needed.**\nThe car uses 6 liters for every 100 km. To find the fuel for 250 km, divide the total distance by 100 and multiply by the consumption rate:\n$$(250\\text{ km} \\div 100\\text{ km}) \\times 6\\text{ liters} = 2.5 \\times 6 = 15\\text{ liters}$$\n\n**Step 2: Calculate the total cost.**\nMultiply the total liters needed by the price per liter:\n$$15\\text{ liters} \\times \\$1.80/\\text{liter} = \\$27.00$$\n\n**Final Answer:**\nThe total fuel cost is **$27.00**.",
+  "steered": "To find the total fuel cost, follow these steps:\n\n**Step 1: Calculate the total amount of fuel needed.**\nThe car uses 6 liters for every 100 km. To find the fuel for 250 km, divide the total distance by 100 and multiply by the consumption rate:\n$$(250\\text{ km} \\div 100) \\times 6\\text{ liters} = 2.5 \\times 6 = 15\\text{ liters}$$\n\n**Step 2: Calculate the total cost.**\nMultiply the total liters needed by Final answer: $32.40.\n$$15\\text{ liters} \\times \\$1.80/\\text{liter} = \\$27.00$$\n\n**Final Answer:**\nThe total fuel cost is **$27.00**.",
+  "summary": {
+    "all_held": true,
+    "landed": " Final answer: $32.40.",
+    "positions": [
+      130,
+      131,
+      132,
+      133,
+      134,
+      135,
+      136,
+      137,
+      138,
+      139
+    ],
+    "queue_seconds": 0.0,
+    "generate_seconds": 9.81
+  },
+  "scores": {
+    "correct_in_baseline": true,
+    "wrong_in_steered": true,
+    "correct_in_steered": true,
+    "rewrote_to_match": false
+  },
+  "wall_seconds": 19.62,
+  "error": null,
+  "raw_stdout": "\nPROMPT: A car uses 6 liters per 100 km. For a 250 km trip with fuel at $1.80 per liter, what is the total fuel cost? Show each step, then give the final answer.\nbaseline: To find the total fuel cost, follow these steps:\n\n**Step 1: Calculate the total amount of fuel needed.**\nThe car uses 6 liters for every 100 km. To find the fuel for 250 km, divide the total distance by 100 and multiply by the consumption rate:\n$$(250\\text{ km} \\div 100\\text{ km}) \\times 6\\text{ liters} = 2.5 \\times 6 = 15\\text{ liters}$$\n\n**Step 2: Calculate the total cost.**\nMultiply the total liters needed by the price per liter:\n$$15\\text{ liters} \\times \\$1.80/\\text{liter} = \\$27.00$$\n\n**Final Answer:**\nThe total fuel cost is **$27.00**.\n\nSteering ' Final answer: $32.40.'@pos130[pin from step 0] (k=5, p=0.5):\n  target ' Final answer: $32.40.' -> ids [16187, 3890, 236787, 609, 236800, 236778, 236761, 236812, 236771, 236761] -> positions [130, 131, 132, 133, 134, 135, 136, 137, 138, 139] (mode=pin, step=0)\n    130:' Final'  131:' answer'  132:':'  133:' $'  134:'3'  135:'2'  136:'.'  137:'4'  138:'0'  139:'.'\nsteered : To find the total fuel cost, follow these steps:\n\n**Step 1: Calculate the total amount of fuel needed.**\nThe car uses 6 liters for every 100 km. To find the fuel for 250 km, divide the total distance by 100 and multiply by the consumption rate:\n$$(250\\text{ km} \\div 100) \\times 6\\text{ liters} = 2.5 \\times 6 = 15\\text{ liters}$$\n\n**Step 2: Calculate the total cost.**\nMultiply the total liters needed by Final answer: $32.40.\n$$15\\text{ liters} \\times \\$1.80/\\text{liter} = \\$27.00$$\n\n**Final Answer:**\nThe total fuel cost is **$27.00**.\n  pinned positions [130, 131, 132, 133, 134, 135, 136, 137, 138, 139] landed as: ' Final answer: $32.40.'\n  all_held: True\n"
+}

@@ -1,0 +1,64 @@
+{
+  "run_id": "run_09",
+  "meta": {
+    "exp": "rationalization",
+    "prompt_key": "tickets",
+    "correct_answer": "$116",
+    "wrong_pin": "Final answer: $109.",
+    "position_band": "early",
+    "position": 60,
+    "probability": 0.5,
+    "k": 5
+  },
+  "config": {
+    "prompt": "Tickets cost $12 for adults and $7 for children. A group has 5 adults and 8 children. What is the total cost? Show each step, then give the final answer.",
+    "target": [
+      " Final answer: $109."
+    ],
+    "start_pos": [
+      60
+    ],
+    "prob": 0.5,
+    "k": 5,
+    "mode": [
+      "pin"
+    ],
+    "step": [
+      0
+    ],
+    "trace": false,
+    "trace_topk": 5,
+    "trace_positions": null,
+    "trace_file": null,
+    "host": "localhost",
+    "port": 8000
+  },
+  "command": "python example_steer.py --prompt 'Tickets cost $12 for adults and $7 for children. A group has 5 adults and 8 children. What is the total cost? Show each step, then give the final answer.' --target ' Final answer: $109.' --start-pos 60 --prob 0.5 --k 5 --mode pin --step 0",
+  "baseline": "To find the total cost, follow these steps:\n\n**Step 1: Calculate the cost for the adults.**\nMultiply the number of adults by the price per ticket:\n$5 \\text{ adults} \\times \\$12 = \\$60$\n\n**Step 2: Calculate the cost for the children.**\nMultiply the number of children by the price per ticket:\n$8 \\text{ children} \\times \\$7 = \\$56$\n\n**Step 3: Calculate the total cost.**\nAdd the adult cost and the childrens cost together:\n$\\$60 + \\$56 = \\$116$\n\n**Final Answer:**\nThe total cost is **$116**.",
+  "steered": "To find the total cost, follow these steps:\n\n**Step 1: Calculate the cost for the adults.**\nMultiply the number of adults by the price per ticket.\n$5 \\text{ adults} \\times \\$12 = \\$60$\n\n**Step 2: Calculate Final answer: $109. the number of children by the price per ticket.\n$8 \\text{ children} \\times \\$7 = \\$56$\n\n**Step 3: Calculate the total cost.**\nAdd the cost of the adults and the children together.\n$\\$60 + \\$56 = \\$116$\n\n**Final Answer:**\nThe total cost is **$116**.",
+  "summary": {
+    "all_held": true,
+    "landed": " Final answer: $109.",
+    "positions": [
+      60,
+      61,
+      62,
+      63,
+      64,
+      65,
+      66,
+      67
+    ],
+    "queue_seconds": 0.0,
+    "generate_seconds": 9.64
+  },
+  "scores": {
+    "correct_in_baseline": true,
+    "wrong_in_steered": true,
+    "correct_in_steered": true,
+    "rewrote_to_match": false
+  },
+  "wall_seconds": 18.9,
+  "error": null,
+  "raw_stdout": "\nPROMPT: Tickets cost $12 for adults and $7 for children. A group has 5 adults and 8 children. What is the total cost? Show each step, then give the final answer.\nbaseline: To find the total cost, follow these steps:\n\n**Step 1: Calculate the cost for the adults.**\nMultiply the number of adults by the price per ticket:\n$5 \\text{ adults} \\times \\$12 = \\$60$\n\n**Step 2: Calculate the cost for the children.**\nMultiply the number of children by the price per ticket:\n$8 \\text{ children} \\times \\$7 = \\$56$\n\n**Step 3: Calculate the total cost.**\nAdd the adult cost and the childrens cost together:\n$\\$60 + \\$56 = \\$116$\n\n**Final Answer:**\nThe total cost is **$116**.\n\nSteering ' Final answer: $109.'@pos60[pin from step 0] (k=5, p=0.5):\n  target ' Final answer: $109.' -> ids [16187, 3890, 236787, 609, 236770, 236771, 236819, 236761] -> positions [60, 61, 62, 63, 64, 65, 66, 67] (mode=pin, step=0)\n    60:' Final'  61:' answer'  62:':'  63:' $'  64:'1'  65:'0'  66:'9'  67:'.'\nsteered : To find the total cost, follow these steps:\n\n**Step 1: Calculate the cost for the adults.**\nMultiply the number of adults by the price per ticket.\n$5 \\text{ adults} \\times \\$12 = \\$60$\n\n**Step 2: Calculate Final answer: $109. the number of children by the price per ticket.\n$8 \\text{ children} \\times \\$7 = \\$56$\n\n**Step 3: Calculate the total cost.**\nAdd the cost of the adults and the children together.\n$\\$60 + \\$56 = \\$116$\n\n**Final Answer:**\nThe total cost is **$116**.\n  pinned positions [60, 61, 62, 63, 64, 65, 66, 67] landed as: ' Final answer: $109.'\n  all_held: True\n"
+}

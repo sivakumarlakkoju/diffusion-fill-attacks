@@ -55,6 +55,7 @@ class InterventionLogitsProcessor(LogitsProcessor):
         total_steps: int,
         t_min: float | None,
         t_max: float | None,
+        batch_index: int = 0,
     ):
         self.interventions = list(interventions)
         self.prompt_len = prompt_len
@@ -62,6 +63,8 @@ class InterventionLogitsProcessor(LogitsProcessor):
         self.total_steps = total_steps
         self.t_min = t_min
         self.t_max = t_max
+        # Which sequence in the batch to snapshot for the recorder (v1 records one).
+        self.batch_index = batch_index
         self.last_steered: list[int] = []
 
     def __call__(
@@ -73,7 +76,7 @@ class InterventionLogitsProcessor(LogitsProcessor):
         temp = compute_temperature(cur, self.t_min, self.t_max, self.total_steps)
 
         # Snapshot pre-intervention logits (float32 copy so downstream mutations don't corrupt it).
-        self.last_pre_scores: torch.FloatTensor = scores[self.config.batch_index].float().clone()
+        self.last_pre_scores: torch.FloatTensor = scores[self.batch_index].float().clone()
 
         steered: list[int] = []
         for iv in self.interventions:
