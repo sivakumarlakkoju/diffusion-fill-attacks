@@ -39,6 +39,14 @@ def main():
     ap.add_argument("--base-model", default=None,
                     help="ungated base to load the finetuned LoRA onto, e.g. unsloth/gemma-2b "
                          "(avoids gated google/gemma-2b). Adapter = qylu4156/strongreject-15k-v1.")
+    ap.add_argument("--judge-model", nargs="+", default=None,
+                    help="rubric only: litellm judge model id(s), tried in order, e.g. "
+                         "openai/gpt-5 (default: openai/gpt-4o-mini, openai/gpt-3.5-turbo).")
+    ap.add_argument("--temperature", type=float, default=None,
+                    help="rubric only: judge sampling temperature. GPT-5 reasoning models "
+                         "require 1 (the default 0 errors out).")
+    ap.add_argument("--max-prompts", type=int, default=None,
+                    help="grade only the first N fully-complete prompts (all strategies present).")
     args = ap.parse_args()
 
     expdir = args.expdir or os.path.join(args.root, args.exp)
@@ -56,6 +64,19 @@ def main():
         d = json.load(open(fn))
         rows.append((pidx, strat, d["prompt"], d.get("text", "")))
     strategies = sorted(strategies)
+
+    # optionally cap to the first N FULLY-complete prompts (all strategies present),
+    # so a partial sweep grades a clean, comparable subset across graders.
+    if args.max_prompts:
+        n_strat = len(strategies)
+        counts = defaultdict(int)
+        for pidx, *_ in rows:
+            counts[pidx] += 1
+        complete = sorted(p for p, c in counts.items() if c >= n_strat)[: args.max_prompts]
+        keep = set(complete)
+        rows = [r for r in rows if r[0] in keep]
+        print(f"capped to first {len(complete)} complete prompts (--max-prompts {args.max_prompts})")
+
     print(f"loaded {len(rows)} responses from {expdir}  |  strategies: {strategies}")
     if not rows:
         raise SystemExit("no p*_*.json trace files found")
@@ -89,17 +110,31 @@ def main():
         "forbidden_prompt": [r[2] for r in rows],
         "response": [r[3] for r in rows],
     })
-    scored = evaluate_dataset(ds, [args.evaluator])
+    eval_kwargs = {}
+    if args.judge_model:
+        eval_kwargs["models"] = args.judge_model
+    if args.temperature is not None:
+        eval_kwargs["temperature"] = args.temperature
+    scored = evaluate_dataset(ds, [args.evaluator], **eval_kwargs)
     scores = scored["score"]
+
+    # extra per-pair sub-metrics the evaluator may emit (rubric -> refusal,
+    # convincingness, specificity). Finetuned only emits "score". Keep whichever
+    # numeric columns are present so one script serves both graders.
+    extra_cols = [c for c in ("refusal", "convincingness", "specificity")
+                  if c in scored.column_names]
 
     # --- write ONE csv: every (prompt, strategy) response + score ----------
     with open(out, "w", newline="") as f:
         w = csv.writer(f)
-        w.writerow(["prompt_idx", "strategy", "score", "forbidden_prompt", "response"])
-        for (pidx, strat, prompt, resp), s in sorted(
-                zip(rows, scores), key=lambda x: (x[0][0], x[0][1])):
-            w.writerow([pidx, strat, f"{s:.4f}", prompt, resp])
-    print(f"wrote {out}")
+        w.writerow(["prompt_idx", "strategy", "score", *extra_cols,
+                    "forbidden_prompt", "response"])
+        order = sorted(range(len(rows)), key=lambda i: (rows[i][0], rows[i][1]))
+        for i in order:
+            pidx, strat, prompt, resp = rows[i]
+            extra = [scored[c][i] for c in extra_cols]
+            w.writerow([pidx, strat, f"{scores[i]:.4f}", *extra, prompt, resp])
+    print(f"wrote {out}" + (f"  (+cols: {extra_cols})" if extra_cols else ""))
 
     # --- aggregate ---------------------------------------------------------
     by_strat = defaultdict(list)
