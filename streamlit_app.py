@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime
 import glob
+import html
 import json
 import math
 import os
@@ -330,7 +331,9 @@ _CANVAS_GREEN = (22, 163, 74)   # super green at p=1 (confident, natural)
 _CANVAS_BLUE = (37, 99, 235)    # injected / pinned position
 
 
-def _render_canvas_iframe(inner_html: str, *, height: int, frame_style: str) -> None:
+def _render_canvas_iframe(
+    inner_html: str, *, height: int, frame_style: str, scrolling: bool = False,
+) -> None:
     """Render canvas HTML inside a components iframe with a click handler.
 
     Token clicks navigate the *parent* page to `?focus=N&step=M`. That triggers a
@@ -340,7 +343,13 @@ def _render_canvas_iframe(inner_html: str, *, height: int, frame_style: str) -> 
     given Streamlit's iframe sandboxing: programmatic URL changes via
     `pushState`+`popstate` are not reliably picked up by Streamlit's frontend, but
     a real navigation always is.
+
+    With ``scrolling=True`` the iframe itself becomes scrollable so canvases
+    taller than ``height`` stay reachable instead of being clipped.
     """
+    # When the caller wants scrolling, let the iframe body scroll vertically;
+    # otherwise we keep the historical fixed-height behavior.
+    body_overflow = "auto" if scrolling else "hidden"
     doc = f"""
 <!doctype html>
 <html><head><style>
@@ -354,7 +363,8 @@ def _render_canvas_iframe(inner_html: str, *, height: int, frame_style: str) -> 
     }}
   }}
   html,body{{margin:0;padding:0;background:transparent;color:var(--df-fg);
-    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;}}
+    font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+    overflow-y:{body_overflow};}}
   .df-frame{{{frame_style}}}
   .df-tok{{transition:outline 80ms;}}
   .df-tok:hover{{outline:2px solid #6366f1; outline-offset:1px;}}
@@ -378,7 +388,7 @@ def _render_canvas_iframe(inner_html: str, *, height: int, frame_style: str) -> 
   </script>
 </body></html>
 """
-    components.html(doc, height=height, scrolling=False)
+    components.html(doc, height=height, scrolling=scrolling)
 
 
 def _autoload_last_run() -> bool:
@@ -772,10 +782,12 @@ def _load_experiment_into_state(payload: dict) -> tuple[bool, str]:
         return False, f"could not coerce start_pos/steps to ints: {exc}"
 
     st.session_state["prompt_text"] = prompt_v
-    # Streamlit caches widget state by key; the prompt text_area is bound to
-    # `_prompt_widget`, so we must drop it for the new `prompt_text` value to
-    # actually appear in the UI on rerun.
-    st.session_state.pop("_prompt_widget", None)
+    # Drive the text_area through its own widget key directly. Just popping
+    # `_prompt_widget` and relying on the `value=` fallback is unreliable
+    # (Streamlit silently sticks with the previous widget value when the
+    # widget renders on the next rerun) — assigning the key BEFORE the widget
+    # is rendered is the supported way to push a new value into it.
+    st.session_state["_prompt_widget"] = prompt_v
     st.session_state["rows"] = new_rows
     st.session_state["rows_nonce"] += 1
     return True, f"loaded {n} target(s) at positions {sp_list}"
@@ -839,7 +851,9 @@ def _form_is_dirty() -> bool:
 def _reset_form_state() -> None:
     """Wipe the prompt + rows + last-run + uploader nonce back to defaults."""
     st.session_state["prompt_text"] = defaults.prompt
-    st.session_state.pop("_prompt_widget", None)
+    # Push the default into the widget key directly so the text_area picks it up
+    # on the next rerun (popping alone doesn't reliably update the widget).
+    st.session_state["_prompt_widget"] = defaults.prompt
     st.session_state["rows"] = [dict(DEFAULT_ROW)]
     st.session_state["rows_nonce"] = st.session_state.get("rows_nonce", 0) + 1
     st.session_state["uploader_nonce"] = st.session_state.get("uploader_nonce", 0) + 1
@@ -850,7 +864,7 @@ def _reset_form_state() -> None:
 def _clear_setup_only() -> None:
     """Reset prompt + targets but keep last_run and the run log."""
     st.session_state["prompt_text"] = defaults.prompt
-    st.session_state.pop("_prompt_widget", None)
+    st.session_state["_prompt_widget"] = defaults.prompt
     st.session_state["rows"] = [dict(DEFAULT_ROW)]
     st.session_state["rows_nonce"] = st.session_state.get("rows_nonce", 0) + 1
     st.session_state["uploader_nonce"] = st.session_state.get("uploader_nonce", 0) + 1
@@ -1092,9 +1106,13 @@ if active_tab == "Setup":
         )
 
     st.markdown("#### Prompt")
+    # Initialize the widget's session_state key on first render; thereafter the
+    # widget owns the value and `_prompt_widget` is the source of truth. Imports
+    # / resets write directly to `_prompt_widget` (see `_load_experiment_into_state`
+    # and `_reset_form_state`) so the displayed prompt stays in sync.
+    st.session_state.setdefault("_prompt_widget", st.session_state["prompt_text"])
     st.text_area(
         "--prompt", height=90, label_visibility="collapsed",
-        value=st.session_state["prompt_text"],
         key="_prompt_widget",
         on_change=lambda: st.session_state.update(
             prompt_text=st.session_state["_prompt_widget"]
@@ -1454,6 +1472,23 @@ if active_tab == "Convergence":
             "tokens at one focused position -- watch it narrow from spread-out to spike."
         )
 
+        # Initial prompt card -- shown above the step slider so the user always has
+        # the source prompt in view while scrubbing through the denoising trajectory.
+        prompt_text = (last.get("prompt") or "").strip()
+        if prompt_text:
+            st.markdown(
+                "<div style='background:var(--df-card-bg);border:1px solid var(--df-card-border);"
+                "border-radius:8px;padding:0.5rem 0.85rem;margin:0.4rem 0 0.6rem 0'>"
+                "<div style='font-size:0.78rem;color:var(--df-muted);"
+                "text-transform:uppercase;letter-spacing:0.04em;margin-bottom:0.25rem'>"
+                "Initial prompt</div>"
+                "<div style='font-family:monospace;font-size:0.92rem;color:var(--df-fg);"
+                "white-space:pre-wrap;word-break:break-word'>"
+                f"{html.escape(prompt_text)}"
+                "</div></div>",
+                unsafe_allow_html=True,
+            )
+
         # If the user clicked a token in the canvas/film-strip, the page reloaded
         # with ?focus=N. Consume it into session_state so the selectbox below picks
         # it up. We deliberately leave the param in the URL: deleting it via
@@ -1469,411 +1504,425 @@ if active_tab == "Convergence":
             if wanted is not None and wanted in all_positions:
                 st.session_state["focus_pos_widget"] = wanted
 
-        # Anchor target so the post-click rerun keeps the canvas in view rather than
-        # scrolling back to the top of the page.
-        st.markdown("<div id='canvas-anchor'></div>", unsafe_allow_html=True)
+        # Wrap the slider-driven view in a fragment so the step slider, focus
+        # selector, and commitment-threshold slider rerun ONLY this block instead
+        # of the whole app — that's what makes scrubbing feel live (the canvas /
+        # distribution / charts update on every drag tick rather than only after
+        # the user releases).
+        @st.fragment
+        def _convergence_view():
+            # Anchor target so the post-click rerun keeps the canvas in view rather than
+            # scrolling back to the top of the page.
+            st.markdown("<div id='canvas-anchor'></div>", unsafe_allow_html=True)
 
-        ctop1, ctop2 = st.columns([3, 2])
-        # Persist the step across reruns triggered by token clicks (see ?focus=N
-        # below) — without a key, the slider would snap back to the default each
-        # time the user clicked a canvas token.
-        if "step_widget" not in st.session_state:
-            st.session_state["step_widget"] = int(all_steps[-1])
-        elif not (int(all_steps[0]) <= st.session_state["step_widget"] <= int(all_steps[-1])):
-            st.session_state["step_widget"] = int(all_steps[-1])
-        step = ctop1.slider(
-            "denoising step",
-            min_value=int(all_steps[0]), max_value=int(all_steps[-1]),
-            step=1, key="step_widget",
-        )
-        # Default the dropdown to the last position on first render; thereafter it's
-        # driven by `focus_pos_widget` (either user-selected or set from ?focus=N).
-        if "focus_pos_widget" not in st.session_state:
-            st.session_state["focus_pos_widget"] = all_positions[-1]
-        elif st.session_state["focus_pos_widget"] not in all_positions:
-            # Loaded a different run -- positions changed; fall back to the last one.
-            st.session_state["focus_pos_widget"] = all_positions[-1]
-        focus_pos = ctop2.selectbox(
-            "focused position (drives the right-pane distribution)",
-            all_positions,
-            key="focus_pos_widget",
-            format_func=lambda p: f"pos {p}" + ("  (steered)" if p in steered_set else ""),
-        )
+            ctop1, ctop2 = st.columns([3, 2])
+            # Persist the step across reruns triggered by token clicks (see ?focus=N
+            # below) — without a key, the slider would snap back to the default each
+            # time the user clicked a canvas token.
+            if "step_widget" not in st.session_state:
+                st.session_state["step_widget"] = int(all_steps[-1])
+            elif not (int(all_steps[0]) <= st.session_state["step_widget"] <= int(all_steps[-1])):
+                st.session_state["step_widget"] = int(all_steps[-1])
+            step = ctop1.slider(
+                "denoising step",
+                min_value=int(all_steps[0]), max_value=int(all_steps[-1]),
+                step=1, key="step_widget",
+            )
+            # Default the dropdown to the last position on first render; thereafter it's
+            # driven by `focus_pos_widget` (either user-selected or set from ?focus=N).
+            if "focus_pos_widget" not in st.session_state:
+                st.session_state["focus_pos_widget"] = all_positions[-1]
+            elif st.session_state["focus_pos_widget"] not in all_positions:
+                # Loaded a different run -- positions changed; fall back to the last one.
+                st.session_state["focus_pos_widget"] = all_positions[-1]
+            focus_pos = ctop2.selectbox(
+                "focused position (drives the right-pane distribution)",
+                all_positions,
+                key="focus_pos_widget",
+                format_func=lambda p: f"pos {p}" + ("  (steered)" if p in steered_set else ""),
+            )
 
-        canvas_col, dist_col = st.columns([3, 2], gap="large")
-
-        with canvas_col:
-            st.markdown(f"##### Canvas at step {step}")
-            html = _step_canvas_html(decoded, step, all_positions, steered_set, focus=int(focus_pos))
-            # Each cell is ~28px wide at the rendered font size; estimate how many
-            # rows the canvas wraps to so the iframe is tall enough to show all of
-            # them without an internal scrollbar.
-            est_rows = max(1, math.ceil(len(all_positions) * 28 / 720))
-            canvas_height = max(180, 36 + est_rows * 38)
+            canvas_col, dist_col = st.columns([3, 2], gap="large")
+    
+            with canvas_col:
+                st.markdown(f"##### Canvas at step {step}")
+                canvas_html = _step_canvas_html(decoded, step, all_positions, steered_set, focus=int(focus_pos))
+                # Each cell is ~28px wide at the rendered font size; estimate how many
+                # rows the canvas wraps to so the iframe is tall enough to show all of
+                # them without an internal scrollbar.
+                est_rows = max(1, math.ceil(len(all_positions) * 28 / 720))
+                canvas_height = max(180, 36 + est_rows * 38)
+                # Cap the visible iframe at 700px but let the body scroll vertically
+                # so larger canvases stay fully reachable instead of being clipped.
+                iframe_height = min(canvas_height, 700)
+                needs_scroll = canvas_height > iframe_height
+                _render_canvas_iframe(
+                    canvas_html,
+                    height=iframe_height,
+                    frame_style=(
+                        "border:1px solid #e3e3e3;border-radius:8px;padding:18px;"
+                        "background:#fff;font-family:monospace;font-size:18px;"
+                        "line-height:1.9;min-height:160px;color:#111;"
+                        # The iframe sees `prefers-color-scheme` independently from the
+                        # parent; this opt-in lets `light-dark()` in the cell colors work.
+                        "color-scheme:light dark;"
+                    ),
+                    scrolling=needs_scroll,
+                )
+                st.caption(
+                    "Each glyph is the most-likely token at one position. "
+                    "<span style='background:rgb(220,245,230);color:#111;padding:0 3px;"
+                    "border-radius:3px'>"
+                    "Green</span> intensity ∝ its probability — pale = uncertain, "
+                    "<span style='background:rgb(22,163,74);color:#fff;padding:0 3px;border-radius:3px'>"
+                    "super green</span> = committed (p≈1). "
+                    "<span style='background:rgb(37,99,235);color:#fff;padding:0 3px;border-radius:3px'>"
+                    "Blue</span> = injected/pinned (dashed border = steered this very step). "
+                    "<span style='color:#ef4444'>Red box</span> = the focused position.",
+                    unsafe_allow_html=True,
+                )
+    
+            with dist_col:
+                st.markdown(f"##### Distribution at pos {focus_pos}, step {step}")
+                dist = distribution_at(decoded, step, int(focus_pos), trace_topk_used)
+                pre_dist = pre_distribution_at(decoded, step, int(focus_pos), trace_topk_used)
+                if dist.empty:
+                    st.info("No trace at this (step, position).")
+                else:
+                    top1_prob = float(dist["prob"].iloc[0])
+                    entropy = -sum(p * math.log(max(p, 1e-12)) for p in dist["prob"])
+                    m1, m2 = st.columns(2)
+                    m1.metric("top-1 prob (post)", f"{top1_prob:.3f}")
+                    m2.metric("entropy (post)", f"{entropy:.3f}",
+                              help="lower = more committed; higher = more uncertain")
+    
+                    if not pre_dist.empty:
+                        st.caption("**After steering** (what sampler saw)")
+    
+                    def _dist_chart(df, color_scheme):
+                        return (
+                            alt.Chart(df)
+                            .mark_bar()
+                            .encode(
+                                x=alt.X("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
+                                y=alt.Y("display:N", sort="-x", title=None),
+                                color=alt.Color(
+                                    "prob:Q",
+                                    scale=alt.Scale(scheme=color_scheme, domain=[0, 1]),
+                                    legend=None,
+                                ),
+                                tooltip=[
+                                    alt.Tooltip("token:N", title="token"),
+                                    alt.Tooltip("prob:Q", title="prob", format=".4f"),
+                                ],
+                            )
+                            .properties(height=max(200, 26 * len(df)))
+                        )
+    
+                    chart = _dist_chart(dist, "blues")
+                    st.altair_chart(chart, use_container_width=True)
+    
+                    if not pre_dist.empty:
+                        st.caption("**Before steering** (natural model distribution)")
+                        pre_top1 = float(pre_dist["prob"].iloc[0])
+                        pre_ent = -sum(p * math.log(max(p, 1e-12)) for p in pre_dist["prob"])
+                        pm1, pm2 = st.columns(2)
+                        pm1.metric("top-1 prob (pre)", f"{pre_top1:.3f}")
+                        pm2.metric("entropy (pre)", f"{pre_ent:.3f}")
+                        pre_chart = _dist_chart(pre_dist, "greens")
+                        st.altair_chart(pre_chart, use_container_width=True)
+    
+                    st.caption(
+                        "Tokens shown with `·` for spaces and `⏎` for newlines so you can "
+                        "see whitespace candidates. Scrub the **step** slider above and "
+                        "watch the bars collapse onto the winner."
+                    )
+    
+                # Full distribution over ALL timesteps for the focused position: this is the
+                # per-step top-k data the single-step bars above are sliced from, shown as
+                # stacked bands so you can see the mass migrate onto the winner as it denoises.
+                st.markdown(f"##### Candidate distribution at pos {focus_pos} across all steps")
+                traj_is_steered = int(focus_pos) in steered_set
+                traj_df = topk_at_position_frame(
+                    decoded, int(focus_pos), trace_topk_used, prefer_pre=traj_is_steered
+                )
+                if traj_df.empty:
+                    st.info("No trace for this position.")
+                else:
+                    long = traj_df.reset_index().melt("step", var_name="token", value_name="prob")
+                    area = (
+                        alt.Chart(long)
+                        .mark_area()
+                        .encode(
+                            x=alt.X("step:Q", title="denoising step"),
+                            y=alt.Y("prob:Q", stack="zero",
+                                    scale=alt.Scale(domain=[0, 1]), title="probability"),
+                            color=alt.Color("token:N", title="candidate token"),
+                            order=alt.Order("prob:Q", sort="descending"),
+                            tooltip=[alt.Tooltip("step:Q", title="step"),
+                                     alt.Tooltip("token:N", title="token"),
+                                     alt.Tooltip("prob:Q", title="prob", format=".3f")],
+                        )
+                        .properties(height=240)
+                    )
+                    st.altair_chart(area, use_container_width=True)
+                    st.caption(
+                        ("**Natural** (pre-intervention) distribution — the model's genuine "
+                         "uncertainty, not the forced spike. "
+                         if traj_is_steered else "Post-intervention top-k distribution. ")
+                        + "Each band is one candidate token's probability at that step; the "
+                        "whole top-k distribution for this position, every timestep at once."
+                    )
+    
+            st.divider()
+            st.markdown("#### Streaming-process diagnostics")
+            st.caption(
+                "Five complementary views of the same trace. Each one answers a different "
+                "question about *how* the canvas converges, not just *what* it converges to."
+            )
+    
+            d_overall, d_heat, d_commit, d_rank, d_churn, d_traj = st.tabs([
+                "① Overall uncertainty",
+                "② Entropy heatmap",
+                "③ Commitment timeline",
+                "④ Rank of final winner",
+                "⑤ Top-1 churn",
+                "⑥ Token trajectory table",
+            ])
+    
+            with d_overall:
+                st.caption(
+                    "**Question:** how chaotic is the canvas overall at each step? "
+                    "Mean entropy across all traced positions = headline uncertainty; max "
+                    "entropy = the worst still-undecided position. A clean run shows a "
+                    "monotone descent; kinks reveal moments where the model rejected a "
+                    "competing hypothesis. Pinned positions (entropy ≈ 0) drag mean down."
+                )
+                mean_df = mean_entropy_curve(decoded)
+                if not mean_df.empty:
+                    long = mean_df.melt("step", var_name="metric", value_name="entropy")
+                    line = (
+                        alt.Chart(long)
+                        .mark_line(point=True)
+                        .encode(
+                            x=alt.X("step:Q", title="denoising step"),
+                            y=alt.Y("entropy:Q", title="entropy (nats)"),
+                            color=alt.Color(
+                                "metric:N",
+                                scale=alt.Scale(
+                                    domain=["mean_entropy", "max_entropy"],
+                                    range=["#1f4ed8", "#b91c1c"],
+                                ),
+                                title=None,
+                            ),
+                            tooltip=["step", "metric", alt.Tooltip("entropy:Q", format=".3f")],
+                        )
+                        .properties(height=320)
+                    )
+                    rule = alt.Chart(pd.DataFrame({"step": [step]})).mark_rule(
+                        color="#6b7280", strokeDash=[4, 3]
+                    ).encode(x="step:Q")
+                    st.altair_chart(line + rule, use_container_width=True)
+    
+                probs = top1_prob_frame(decoded)
+                if not probs.empty:
+                    st.markdown("**Top-1 probability per traced position**")
+                    st.caption(
+                        "One line per position. y = top-1 probability at that step. Hard "
+                        "pins read as flat 1.0 from step 0; unsteered positions climb."
+                    )
+                    st.line_chart(probs, height=260)
+    
+            with d_heat:
+                st.caption(
+                    "**Question:** which positions are unsure when? Each cell is the "
+                    "entropy at one (step, position). Dark = uncertain, light = decided."
+                )
+                ent_df = entropy_frame(decoded)
+                if not ent_df.empty:
+                    heat = (
+                        alt.Chart(ent_df)
+                        .mark_rect()
+                        .encode(
+                            x=alt.X("step:O", title="denoising step"),
+                            y=alt.Y("position:O", title="token position", sort="ascending"),
+                            color=alt.Color(
+                                "entropy:Q",
+                                scale=alt.Scale(scheme="magma", reverse=True),
+                                title="entropy",
+                            ),
+                            tooltip=[
+                                "step", "position",
+                                alt.Tooltip("entropy:Q", format=".3f"),
+                            ],
+                        )
+                        .properties(height=max(220, 22 * len(all_positions)))
+                    )
+                    st.altair_chart(heat, use_container_width=True)
+    
+            with d_commit:
+                threshold = st.slider(
+                    "commitment threshold (top-1 probability)",
+                    min_value=0.5, max_value=0.99, value=0.9, step=0.01,
+                    help="A position is 'committed' once top-1 ≥ this value at some step.",
+                )
+                st.caption(
+                    "**Question:** in what order did the model lock in each position? "
+                    "Bar length = first step where top-1 ≥ threshold."
+                )
+                cf = commitment_frame(decoded, threshold=threshold)
+                if not cf.empty:
+                    max_step = max(all_steps)
+                    cf2 = cf.copy()
+                    cf2["never"] = cf2["commit_step"].isna()
+                    cf2["plot_step"] = cf2["commit_step"].fillna(max_step + 1)
+                    cf2["pinned"] = cf2["position"].isin(steered_set)
+    
+                    bars = (
+                        alt.Chart(cf2)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("plot_step:Q", title="step at which top-1 crossed threshold"),
+                            y=alt.Y("position:O", sort="ascending", title="token position"),
+                            color=alt.Color(
+                                "never:N",
+                                scale=alt.Scale(domain=[False, True], range=["#1f4ed8", "#9ca3af"]),
+                                legend=alt.Legend(title=None,
+                                                  labelExpr="datum.value ? 'never crossed' : 'committed'"),
+                            ),
+                            tooltip=[
+                                "position",
+                                alt.Tooltip("commit_step:Q", title="commit step"),
+                                alt.Tooltip("final_token:N", title="final token"),
+                                alt.Tooltip("final_prob:Q", format=".3f", title="final prob"),
+                                alt.Tooltip("pinned:N", title="steered?"),
+                            ],
+                        )
+                        .properties(height=max(220, 22 * len(cf2)))
+                    )
+                    pin_dots = (
+                        alt.Chart(cf2[cf2["pinned"]])
+                        .mark_point(filled=True, size=80, shape="diamond", color="#f59e0b")
+                        .encode(x=alt.value(2), y="position:O",
+                                tooltip=[alt.Tooltip("position:O", title="pinned position")])
+                    )
+                    st.altair_chart(bars + pin_dots, use_container_width=True)
+                    st.caption(
+                        "🔶 diamond = pinned position. Grey bar = position never reached the "
+                        "threshold (rendered just past the last step for visibility)."
+                    )
+    
+            with d_rank:
+                st.caption(
+                    "**Question:** when did the eventual answer first show up? At each "
+                    "step, we look up the rank of the *finally chosen* token at every position."
+                )
+                rk = final_rank_frame(decoded)
+                if not rk.empty:
+                    rk = rk.copy()
+                    rk["highlight"] = rk["position"] == int(focus_pos)
+                    lines = (
+                        alt.Chart(rk)
+                        .mark_line(interpolate="step-after")
+                        .encode(
+                            x=alt.X("step:Q", title="denoising step"),
+                            y=alt.Y("rank:Q", title="rank of final-winning token (1 = top)",
+                                    scale=alt.Scale(reverse=True)),
+                            detail="position:N",
+                            color=alt.Color(
+                                "highlight:N",
+                                scale=alt.Scale(domain=[True, False], range=["#b91c1c", "#cbd5e1"]),
+                                legend=None,
+                            ),
+                            size=alt.Size(
+                                "highlight:N",
+                                scale=alt.Scale(domain=[True, False], range=[3, 1]),
+                                legend=None,
+                            ),
+                            tooltip=["step", "position", "rank"],
+                        )
+                        .properties(height=320)
+                    )
+                    st.altair_chart(lines, use_container_width=True)
+                    st.caption(
+                        f"Red line = focused position ({int(focus_pos)}). "
+                        "Y-axis is reversed: rank 1 (the eventual winner) is on top."
+                    )
+    
+            with d_churn:
+                st.caption(
+                    "**Question:** which positions were the model most uncertain about? "
+                    "Bar = the count of *distinct* tokens that ever held top-1 at this position."
+                )
+                ch = churn_frame(decoded)
+                if not ch.empty:
+                    ch = ch.copy()
+                    ch["pinned"] = ch["position"].isin(steered_set)
+                    bars = (
+                        alt.Chart(ch)
+                        .mark_bar()
+                        .encode(
+                            x=alt.X("distinct_top1:Q", title="# distinct tokens that held top-1"),
+                            y=alt.Y("position:O", sort="ascending", title="token position"),
+                            color=alt.Color(
+                                "pinned:N",
+                                scale=alt.Scale(domain=[True, False], range=["#1f4ed8", "#94a3b8"]),
+                                legend=alt.Legend(title=None,
+                                                  labelExpr="datum.value === 'true' ? 'steered' : 'free'"),
+                            ),
+                            tooltip=[
+                                "position",
+                                alt.Tooltip("distinct_top1:Q", title="churn"),
+                                "pinned",
+                            ],
+                        )
+                        .properties(height=max(220, 22 * len(ch)))
+                    )
+                    st.altair_chart(bars, use_container_width=True)
+    
+            with d_traj:
+                st.caption(
+                    "**Question:** what token was on top at each (position, step)? "
+                    "Heatmap-style table -- rows = positions, columns = steps."
+                )
+                traj = trajectory_frame(decoded)
+                st.dataframe(traj, use_container_width=True)
+    
+            st.markdown("#### Film-strip (sampled steps)")
+            st.caption(
+                "A condensed, scrollable view of the whole denoising loop -- one row per "
+                "sampled step. Green intensity ∝ the top token's probability (pale = uncertain, "
+                "super green = committed). Blue = a steered/pinned position; dashed blue border "
+                "= actively steered at that exact step. Hover any token for its probability and, "
+                "for steered steps, what the model would have picked naturally vs. what was forced."
+            )
+            stride = max(1, len(all_steps) // 24)
+            sampled = all_steps[::stride]
+            if all_steps[-1] not in sampled:
+                sampled.append(all_steps[-1])
+            rows_html = []
+            for s in sampled:
+                canvas = _step_canvas_html(decoded, s, all_positions, steered_set, focus=int(focus_pos))
+                highlight = "background:#fff7d6;" if s == step else ""
+                rows_html.append(
+                    f"<div style='display:flex;align-items:center;gap:10px;"
+                    f"padding:4px 6px;border-bottom:1px solid #eee;"
+                    f"{highlight}font-family:monospace;font-size:13px'>"
+                    f"<div style='width:64px;color:#888;font-size:11px'>"
+                    f"step {s:>3}</div>"
+                    f"<div>{canvas}</div></div>"
+                )
+            # Film-strip lives in the same iframe as the main canvas so token clicks
+            # there route through the same postMessage → ?focus=N → rerun pipeline.
+            # Generous height; iframe scrolls internally via the wrapping `.df-frame`.
             _render_canvas_iframe(
-                html,
-                height=min(canvas_height, 700),
+                "".join(rows_html),
+                height=min(520, 36 * len(sampled) + 40),
                 frame_style=(
-                    "border:1px solid #e3e3e3;border-radius:8px;padding:18px;"
-                    "background:#fff;font-family:monospace;font-size:18px;"
-                    "line-height:1.9;min-height:160px;color:#111;"
-                    # The iframe sees `prefers-color-scheme` independently from the
-                    # parent; this opt-in lets `light-dark()` in the cell colors work.
+                    "border:1px solid #e3e3e3;border-radius:6px;padding:4px;"
+                    "background:#fafafa;max-height:480px;overflow-y:auto;"
                     "color-scheme:light dark;"
                 ),
             )
-            st.caption(
-                "Each glyph is the most-likely token at one position. "
-                "<span style='background:rgb(220,245,230);color:#111;padding:0 3px;"
-                "border-radius:3px'>"
-                "Green</span> intensity ∝ its probability — pale = uncertain, "
-                "<span style='background:rgb(22,163,74);color:#fff;padding:0 3px;border-radius:3px'>"
-                "super green</span> = committed (p≈1). "
-                "<span style='background:rgb(37,99,235);color:#fff;padding:0 3px;border-radius:3px'>"
-                "Blue</span> = injected/pinned (dashed border = steered this very step). "
-                "<span style='color:#ef4444'>Red box</span> = the focused position.",
-                unsafe_allow_html=True,
-            )
 
-        with dist_col:
-            st.markdown(f"##### Distribution at pos {focus_pos}, step {step}")
-            dist = distribution_at(decoded, step, int(focus_pos), trace_topk_used)
-            pre_dist = pre_distribution_at(decoded, step, int(focus_pos), trace_topk_used)
-            if dist.empty:
-                st.info("No trace at this (step, position).")
-            else:
-                top1_prob = float(dist["prob"].iloc[0])
-                entropy = -sum(p * math.log(max(p, 1e-12)) for p in dist["prob"])
-                m1, m2 = st.columns(2)
-                m1.metric("top-1 prob (post)", f"{top1_prob:.3f}")
-                m2.metric("entropy (post)", f"{entropy:.3f}",
-                          help="lower = more committed; higher = more uncertain")
-
-                if not pre_dist.empty:
-                    st.caption("**After steering** (what sampler saw)")
-
-                def _dist_chart(df, color_scheme):
-                    return (
-                        alt.Chart(df)
-                        .mark_bar()
-                        .encode(
-                            x=alt.X("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
-                            y=alt.Y("display:N", sort="-x", title=None),
-                            color=alt.Color(
-                                "prob:Q",
-                                scale=alt.Scale(scheme=color_scheme, domain=[0, 1]),
-                                legend=None,
-                            ),
-                            tooltip=[
-                                alt.Tooltip("token:N", title="token"),
-                                alt.Tooltip("prob:Q", title="prob", format=".4f"),
-                            ],
-                        )
-                        .properties(height=max(200, 26 * len(df)))
-                    )
-
-                chart = _dist_chart(dist, "blues")
-                st.altair_chart(chart, use_container_width=True)
-
-                if not pre_dist.empty:
-                    st.caption("**Before steering** (natural model distribution)")
-                    pre_top1 = float(pre_dist["prob"].iloc[0])
-                    pre_ent = -sum(p * math.log(max(p, 1e-12)) for p in pre_dist["prob"])
-                    pm1, pm2 = st.columns(2)
-                    pm1.metric("top-1 prob (pre)", f"{pre_top1:.3f}")
-                    pm2.metric("entropy (pre)", f"{pre_ent:.3f}")
-                    pre_chart = _dist_chart(pre_dist, "greens")
-                    st.altair_chart(pre_chart, use_container_width=True)
-
-                st.caption(
-                    "Tokens shown with `·` for spaces and `⏎` for newlines so you can "
-                    "see whitespace candidates. Scrub the **step** slider above and "
-                    "watch the bars collapse onto the winner."
-                )
-
-            # Full distribution over ALL timesteps for the focused position: this is the
-            # per-step top-k data the single-step bars above are sliced from, shown as
-            # stacked bands so you can see the mass migrate onto the winner as it denoises.
-            st.markdown(f"##### Candidate distribution at pos {focus_pos} across all steps")
-            traj_is_steered = int(focus_pos) in steered_set
-            traj_df = topk_at_position_frame(
-                decoded, int(focus_pos), trace_topk_used, prefer_pre=traj_is_steered
-            )
-            if traj_df.empty:
-                st.info("No trace for this position.")
-            else:
-                long = traj_df.reset_index().melt("step", var_name="token", value_name="prob")
-                area = (
-                    alt.Chart(long)
-                    .mark_area()
-                    .encode(
-                        x=alt.X("step:Q", title="denoising step"),
-                        y=alt.Y("prob:Q", stack="zero",
-                                scale=alt.Scale(domain=[0, 1]), title="probability"),
-                        color=alt.Color("token:N", title="candidate token"),
-                        order=alt.Order("prob:Q", sort="descending"),
-                        tooltip=[alt.Tooltip("step:Q", title="step"),
-                                 alt.Tooltip("token:N", title="token"),
-                                 alt.Tooltip("prob:Q", title="prob", format=".3f")],
-                    )
-                    .properties(height=240)
-                )
-                st.altair_chart(area, use_container_width=True)
-                st.caption(
-                    ("**Natural** (pre-intervention) distribution — the model's genuine "
-                     "uncertainty, not the forced spike. "
-                     if traj_is_steered else "Post-intervention top-k distribution. ")
-                    + "Each band is one candidate token's probability at that step; the "
-                    "whole top-k distribution for this position, every timestep at once."
-                )
-
-        st.divider()
-        st.markdown("#### Streaming-process diagnostics")
-        st.caption(
-            "Five complementary views of the same trace. Each one answers a different "
-            "question about *how* the canvas converges, not just *what* it converges to."
-        )
-
-        d_overall, d_heat, d_commit, d_rank, d_churn, d_traj = st.tabs([
-            "① Overall uncertainty",
-            "② Entropy heatmap",
-            "③ Commitment timeline",
-            "④ Rank of final winner",
-            "⑤ Top-1 churn",
-            "⑥ Token trajectory table",
-        ])
-
-        with d_overall:
-            st.caption(
-                "**Question:** how chaotic is the canvas overall at each step? "
-                "Mean entropy across all traced positions = headline uncertainty; max "
-                "entropy = the worst still-undecided position. A clean run shows a "
-                "monotone descent; kinks reveal moments where the model rejected a "
-                "competing hypothesis. Pinned positions (entropy ≈ 0) drag mean down."
-            )
-            mean_df = mean_entropy_curve(decoded)
-            if not mean_df.empty:
-                long = mean_df.melt("step", var_name="metric", value_name="entropy")
-                line = (
-                    alt.Chart(long)
-                    .mark_line(point=True)
-                    .encode(
-                        x=alt.X("step:Q", title="denoising step"),
-                        y=alt.Y("entropy:Q", title="entropy (nats)"),
-                        color=alt.Color(
-                            "metric:N",
-                            scale=alt.Scale(
-                                domain=["mean_entropy", "max_entropy"],
-                                range=["#1f4ed8", "#b91c1c"],
-                            ),
-                            title=None,
-                        ),
-                        tooltip=["step", "metric", alt.Tooltip("entropy:Q", format=".3f")],
-                    )
-                    .properties(height=320)
-                )
-                rule = alt.Chart(pd.DataFrame({"step": [step]})).mark_rule(
-                    color="#6b7280", strokeDash=[4, 3]
-                ).encode(x="step:Q")
-                st.altair_chart(line + rule, use_container_width=True)
-
-            probs = top1_prob_frame(decoded)
-            if not probs.empty:
-                st.markdown("**Top-1 probability per traced position**")
-                st.caption(
-                    "One line per position. y = top-1 probability at that step. Hard "
-                    "pins read as flat 1.0 from step 0; unsteered positions climb."
-                )
-                st.line_chart(probs, height=260)
-
-        with d_heat:
-            st.caption(
-                "**Question:** which positions are unsure when? Each cell is the "
-                "entropy at one (step, position). Dark = uncertain, light = decided."
-            )
-            ent_df = entropy_frame(decoded)
-            if not ent_df.empty:
-                heat = (
-                    alt.Chart(ent_df)
-                    .mark_rect()
-                    .encode(
-                        x=alt.X("step:O", title="denoising step"),
-                        y=alt.Y("position:O", title="token position", sort="ascending"),
-                        color=alt.Color(
-                            "entropy:Q",
-                            scale=alt.Scale(scheme="magma", reverse=True),
-                            title="entropy",
-                        ),
-                        tooltip=[
-                            "step", "position",
-                            alt.Tooltip("entropy:Q", format=".3f"),
-                        ],
-                    )
-                    .properties(height=max(220, 22 * len(all_positions)))
-                )
-                st.altair_chart(heat, use_container_width=True)
-
-        with d_commit:
-            threshold = st.slider(
-                "commitment threshold (top-1 probability)",
-                min_value=0.5, max_value=0.99, value=0.9, step=0.01,
-                help="A position is 'committed' once top-1 ≥ this value at some step.",
-            )
-            st.caption(
-                "**Question:** in what order did the model lock in each position? "
-                "Bar length = first step where top-1 ≥ threshold."
-            )
-            cf = commitment_frame(decoded, threshold=threshold)
-            if not cf.empty:
-                max_step = max(all_steps)
-                cf2 = cf.copy()
-                cf2["never"] = cf2["commit_step"].isna()
-                cf2["plot_step"] = cf2["commit_step"].fillna(max_step + 1)
-                cf2["pinned"] = cf2["position"].isin(steered_set)
-
-                bars = (
-                    alt.Chart(cf2)
-                    .mark_bar()
-                    .encode(
-                        x=alt.X("plot_step:Q", title="step at which top-1 crossed threshold"),
-                        y=alt.Y("position:O", sort="ascending", title="token position"),
-                        color=alt.Color(
-                            "never:N",
-                            scale=alt.Scale(domain=[False, True], range=["#1f4ed8", "#9ca3af"]),
-                            legend=alt.Legend(title=None,
-                                              labelExpr="datum.value ? 'never crossed' : 'committed'"),
-                        ),
-                        tooltip=[
-                            "position",
-                            alt.Tooltip("commit_step:Q", title="commit step"),
-                            alt.Tooltip("final_token:N", title="final token"),
-                            alt.Tooltip("final_prob:Q", format=".3f", title="final prob"),
-                            alt.Tooltip("pinned:N", title="steered?"),
-                        ],
-                    )
-                    .properties(height=max(220, 22 * len(cf2)))
-                )
-                pin_dots = (
-                    alt.Chart(cf2[cf2["pinned"]])
-                    .mark_point(filled=True, size=80, shape="diamond", color="#f59e0b")
-                    .encode(x=alt.value(2), y="position:O",
-                            tooltip=[alt.Tooltip("position:O", title="pinned position")])
-                )
-                st.altair_chart(bars + pin_dots, use_container_width=True)
-                st.caption(
-                    "🔶 diamond = pinned position. Grey bar = position never reached the "
-                    "threshold (rendered just past the last step for visibility)."
-                )
-
-        with d_rank:
-            st.caption(
-                "**Question:** when did the eventual answer first show up? At each "
-                "step, we look up the rank of the *finally chosen* token at every position."
-            )
-            rk = final_rank_frame(decoded)
-            if not rk.empty:
-                rk = rk.copy()
-                rk["highlight"] = rk["position"] == int(focus_pos)
-                lines = (
-                    alt.Chart(rk)
-                    .mark_line(interpolate="step-after")
-                    .encode(
-                        x=alt.X("step:Q", title="denoising step"),
-                        y=alt.Y("rank:Q", title="rank of final-winning token (1 = top)",
-                                scale=alt.Scale(reverse=True)),
-                        detail="position:N",
-                        color=alt.Color(
-                            "highlight:N",
-                            scale=alt.Scale(domain=[True, False], range=["#b91c1c", "#cbd5e1"]),
-                            legend=None,
-                        ),
-                        size=alt.Size(
-                            "highlight:N",
-                            scale=alt.Scale(domain=[True, False], range=[3, 1]),
-                            legend=None,
-                        ),
-                        tooltip=["step", "position", "rank"],
-                    )
-                    .properties(height=320)
-                )
-                st.altair_chart(lines, use_container_width=True)
-                st.caption(
-                    f"Red line = focused position ({int(focus_pos)}). "
-                    "Y-axis is reversed: rank 1 (the eventual winner) is on top."
-                )
-
-        with d_churn:
-            st.caption(
-                "**Question:** which positions were the model most uncertain about? "
-                "Bar = the count of *distinct* tokens that ever held top-1 at this position."
-            )
-            ch = churn_frame(decoded)
-            if not ch.empty:
-                ch = ch.copy()
-                ch["pinned"] = ch["position"].isin(steered_set)
-                bars = (
-                    alt.Chart(ch)
-                    .mark_bar()
-                    .encode(
-                        x=alt.X("distinct_top1:Q", title="# distinct tokens that held top-1"),
-                        y=alt.Y("position:O", sort="ascending", title="token position"),
-                        color=alt.Color(
-                            "pinned:N",
-                            scale=alt.Scale(domain=[True, False], range=["#1f4ed8", "#94a3b8"]),
-                            legend=alt.Legend(title=None,
-                                              labelExpr="datum.value === 'true' ? 'steered' : 'free'"),
-                        ),
-                        tooltip=[
-                            "position",
-                            alt.Tooltip("distinct_top1:Q", title="churn"),
-                            "pinned",
-                        ],
-                    )
-                    .properties(height=max(220, 22 * len(ch)))
-                )
-                st.altair_chart(bars, use_container_width=True)
-
-        with d_traj:
-            st.caption(
-                "**Question:** what token was on top at each (position, step)? "
-                "Heatmap-style table -- rows = positions, columns = steps."
-            )
-            traj = trajectory_frame(decoded)
-            st.dataframe(traj, use_container_width=True)
-
-        st.markdown("#### Film-strip (sampled steps)")
-        st.caption(
-            "A condensed, scrollable view of the whole denoising loop -- one row per "
-            "sampled step. Green intensity ∝ the top token's probability (pale = uncertain, "
-            "super green = committed). Blue = a steered/pinned position; dashed blue border "
-            "= actively steered at that exact step. Hover any token for its probability and, "
-            "for steered steps, what the model would have picked naturally vs. what was forced."
-        )
-        stride = max(1, len(all_steps) // 24)
-        sampled = all_steps[::stride]
-        if all_steps[-1] not in sampled:
-            sampled.append(all_steps[-1])
-        rows_html = []
-        for s in sampled:
-            canvas = _step_canvas_html(decoded, s, all_positions, steered_set, focus=int(focus_pos))
-            highlight = "background:#fff7d6;" if s == step else ""
-            rows_html.append(
-                f"<div style='display:flex;align-items:center;gap:10px;"
-                f"padding:4px 6px;border-bottom:1px solid #eee;"
-                f"{highlight}font-family:monospace;font-size:13px'>"
-                f"<div style='width:64px;color:#888;font-size:11px'>"
-                f"step {s:>3}</div>"
-                f"<div>{canvas}</div></div>"
-            )
-        # Film-strip lives in the same iframe as the main canvas so token clicks
-        # there route through the same postMessage → ?focus=N → rerun pipeline.
-        # Generous height; iframe scrolls internally via the wrapping `.df-frame`.
-        _render_canvas_iframe(
-            "".join(rows_html),
-            height=min(520, 36 * len(sampled) + 40),
-            frame_style=(
-                "border:1px solid #e3e3e3;border-radius:6px;padding:4px;"
-                "background:#fafafa;max-height:480px;overflow-y:auto;"
-                "color-scheme:light dark;"
-            ),
-        )
+        _convergence_view()
