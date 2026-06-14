@@ -1542,130 +1542,129 @@ if active_tab == "Convergence":
                 format_func=lambda p: f"pos {p}" + ("  (steered)" if p in steered_set else ""),
             )
 
-            canvas_col, dist_col = st.columns([3, 2], gap="large")
-    
-            with canvas_col:
-                st.markdown(f"##### Canvas at step {step}")
-                canvas_html = _step_canvas_html(decoded, step, all_positions, steered_set, focus=int(focus_pos))
-                # Tall, always-scrollable iframe — content of any size stays
-                # reachable via the iframe's own vertical scrollbar.
-                _render_canvas_iframe(
-                    canvas_html,
-                    height=820,
-                    frame_style=(
-                        "border:1px solid #e3e3e3;border-radius:8px;padding:18px;"
-                        "background:#fff;font-family:monospace;font-size:18px;"
-                        "line-height:1.9;color:#111;"
-                        # The iframe sees `prefers-color-scheme` independently from the
-                        # parent; this opt-in lets `light-dark()` in the cell colors work.
-                        "color-scheme:light dark;"
-                    ),
-                    scrolling=True,
-                )
-                st.caption(
-                    "Each glyph is the most-likely token at one position. "
-                    "<span style='background:rgb(220,245,230);color:#111;padding:0 3px;"
-                    "border-radius:3px'>"
-                    "Green</span> intensity ∝ its probability — pale = uncertain, "
-                    "<span style='background:rgb(22,163,74);color:#fff;padding:0 3px;border-radius:3px'>"
-                    "super green</span> = committed (p≈1). "
-                    "<span style='background:rgb(37,99,235);color:#fff;padding:0 3px;border-radius:3px'>"
-                    "Blue</span> = injected/pinned (dashed border = steered this very step). "
-                    "<span style='color:#ef4444'>Red box</span> = the focused position.",
-                    unsafe_allow_html=True,
-                )
-    
-            with dist_col:
-                st.markdown(f"##### Distribution at pos {focus_pos}, step {step}")
-                dist = distribution_at(decoded, step, int(focus_pos), trace_topk_used)
-                pre_dist = pre_distribution_at(decoded, step, int(focus_pos), trace_topk_used)
-                if dist.empty:
-                    st.info("No trace at this (step, position).")
-                else:
-                    top1_prob = float(dist["prob"].iloc[0])
-                    entropy = -sum(p * math.log(max(p, 1e-12)) for p in dist["prob"])
-                    m1, m2 = st.columns(2)
-                    m1.metric("top-1 prob (post)", f"{top1_prob:.3f}")
-                    m2.metric("entropy (post)", f"{entropy:.3f}",
-                              help="lower = more committed; higher = more uncertain")
-    
-                    if not pre_dist.empty:
-                        st.caption("**After steering** (what sampler saw)")
-    
-                    def _dist_chart(df, color_scheme):
-                        return (
-                            alt.Chart(df)
-                            .mark_bar()
-                            .encode(
-                                x=alt.X("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
-                                y=alt.Y("display:N", sort="-x", title=None),
-                                color=alt.Color(
-                                    "prob:Q",
-                                    scale=alt.Scale(scheme=color_scheme, domain=[0, 1]),
-                                    legend=None,
-                                ),
-                                tooltip=[
-                                    alt.Tooltip("token:N", title="token"),
-                                    alt.Tooltip("prob:Q", title="prob", format=".4f"),
-                                ],
-                            )
-                            .properties(height=max(200, 26 * len(df)))
-                        )
-    
-                    chart = _dist_chart(dist, "blues")
-                    st.altair_chart(chart, use_container_width=True)
-    
-                    if not pre_dist.empty:
-                        st.caption("**Before steering** (natural model distribution)")
-                        pre_top1 = float(pre_dist["prob"].iloc[0])
-                        pre_ent = -sum(p * math.log(max(p, 1e-12)) for p in pre_dist["prob"])
-                        pm1, pm2 = st.columns(2)
-                        pm1.metric("top-1 prob (pre)", f"{pre_top1:.3f}")
-                        pm2.metric("entropy (pre)", f"{pre_ent:.3f}")
-                        pre_chart = _dist_chart(pre_dist, "greens")
-                        st.altair_chart(pre_chart, use_container_width=True)
-    
-                    st.caption(
-                        "Tokens shown with `·` for spaces and `⏎` for newlines so you can "
-                        "see whitespace candidates. Scrub the **step** slider above and "
-                        "watch the bars collapse onto the winner."
-                    )
-    
-                # Full distribution over ALL timesteps for the focused position: this is the
-                # per-step top-k data the single-step bars above are sliced from, shown as
-                # stacked bands so you can see the mass migrate onto the winner as it denoises.
-                st.markdown(f"##### Candidate distribution at pos {focus_pos} across all steps")
-                traj_is_steered = int(focus_pos) in steered_set
-                traj_df = topk_at_position_frame(
-                    decoded, int(focus_pos), trace_topk_used, prefer_pre=traj_is_steered
-                )
-                if traj_df.empty:
-                    st.info("No trace for this position.")
-                else:
-                    long = traj_df.reset_index().melt("step", var_name="token", value_name="prob")
-                    area = (
-                        alt.Chart(long)
-                        .mark_area()
+            # Single column: distribution charts on top, canvas below — gives the
+            # canvas the full page width so longer outputs read in fewer rows.
+            st.markdown(f"##### Distribution at pos {focus_pos}, step {step}")
+            dist = distribution_at(decoded, step, int(focus_pos), trace_topk_used)
+            pre_dist = pre_distribution_at(decoded, step, int(focus_pos), trace_topk_used)
+            if dist.empty:
+                st.info("No trace at this (step, position).")
+            else:
+                top1_prob = float(dist["prob"].iloc[0])
+                entropy = -sum(p * math.log(max(p, 1e-12)) for p in dist["prob"])
+                m1, m2 = st.columns(2)
+                m1.metric("top-1 prob (post)", f"{top1_prob:.3f}")
+                m2.metric("entropy (post)", f"{entropy:.3f}",
+                          help="lower = more committed; higher = more uncertain")
+
+                if not pre_dist.empty:
+                    st.caption("**After steering** (what sampler saw)")
+
+                def _dist_chart(df, color_scheme):
+                    return (
+                        alt.Chart(df)
+                        .mark_bar()
                         .encode(
-                            x=alt.X("step:Q", title="denoising step"),
-                            y=alt.Y("prob:Q", stack="zero",
-                                    scale=alt.Scale(domain=[0, 1]), title="probability"),
-                            color=alt.Color("token:N", title="candidate token"),
-                            order=alt.Order("prob:Q", sort="descending"),
-                            tooltip=[alt.Tooltip("step:Q", title="step"),
-                                     alt.Tooltip("token:N", title="token"),
-                                     alt.Tooltip("prob:Q", title="prob", format=".3f")],
+                            x=alt.X("prob:Q", scale=alt.Scale(domain=[0, 1]), title="probability"),
+                            y=alt.Y("display:N", sort="-x", title=None),
+                            color=alt.Color(
+                                "prob:Q",
+                                scale=alt.Scale(scheme=color_scheme, domain=[0, 1]),
+                                legend=None,
+                            ),
+                            tooltip=[
+                                alt.Tooltip("token:N", title="token"),
+                                alt.Tooltip("prob:Q", title="prob", format=".4f"),
+                            ],
                         )
-                        .properties(height=240)
+                        .properties(height=max(200, 26 * len(df)))
                     )
-                    st.altair_chart(area, use_container_width=True)
-                    st.caption(
-                        ("**Natural** (pre-intervention) distribution — the model's genuine "
-                         "uncertainty, not the forced spike. "
-                         if traj_is_steered else "Post-intervention top-k distribution. ")
-                        + "Each band is one candidate token's probability at that step; the "
-                        "whole top-k distribution for this position, every timestep at once."
+
+                chart = _dist_chart(dist, "blues")
+                st.altair_chart(chart, use_container_width=True)
+
+                if not pre_dist.empty:
+                    st.caption("**Before steering** (natural model distribution)")
+                    pre_top1 = float(pre_dist["prob"].iloc[0])
+                    pre_ent = -sum(p * math.log(max(p, 1e-12)) for p in pre_dist["prob"])
+                    pm1, pm2 = st.columns(2)
+                    pm1.metric("top-1 prob (pre)", f"{pre_top1:.3f}")
+                    pm2.metric("entropy (pre)", f"{pre_ent:.3f}")
+                    pre_chart = _dist_chart(pre_dist, "greens")
+                    st.altair_chart(pre_chart, use_container_width=True)
+
+                st.caption(
+                    "Tokens shown with `·` for spaces and `⏎` for newlines so you can "
+                    "see whitespace candidates. Scrub the **step** slider above and "
+                    "watch the bars collapse onto the winner."
+                )
+
+            # Full distribution over ALL timesteps for the focused position: this is the
+            # per-step top-k data the single-step bars above are sliced from, shown as
+            # stacked bands so you can see the mass migrate onto the winner as it denoises.
+            st.markdown(f"##### Candidate distribution at pos {focus_pos} across all steps")
+            traj_is_steered = int(focus_pos) in steered_set
+            traj_df = topk_at_position_frame(
+                decoded, int(focus_pos), trace_topk_used, prefer_pre=traj_is_steered
+            )
+            if traj_df.empty:
+                st.info("No trace for this position.")
+            else:
+                long = traj_df.reset_index().melt("step", var_name="token", value_name="prob")
+                area = (
+                    alt.Chart(long)
+                    .mark_area()
+                    .encode(
+                        x=alt.X("step:Q", title="denoising step"),
+                        y=alt.Y("prob:Q", stack="zero",
+                                scale=alt.Scale(domain=[0, 1]), title="probability"),
+                        color=alt.Color("token:N", title="candidate token"),
+                        order=alt.Order("prob:Q", sort="descending"),
+                        tooltip=[alt.Tooltip("step:Q", title="step"),
+                                 alt.Tooltip("token:N", title="token"),
+                                 alt.Tooltip("prob:Q", title="prob", format=".3f")],
                     )
+                    .properties(height=240)
+                )
+                st.altair_chart(area, use_container_width=True)
+                st.caption(
+                    ("**Natural** (pre-intervention) distribution — the model's genuine "
+                     "uncertainty, not the forced spike. "
+                     if traj_is_steered else "Post-intervention top-k distribution. ")
+                    + "Each band is one candidate token's probability at that step; the "
+                    "whole top-k distribution for this position, every timestep at once."
+                )
+
+            st.divider()
+            st.markdown(f"##### Canvas at step {step}")
+            canvas_html = _step_canvas_html(decoded, step, all_positions, steered_set, focus=int(focus_pos))
+            # Tall, always-scrollable iframe — content of any size stays
+            # reachable via the iframe's own vertical scrollbar.
+            _render_canvas_iframe(
+                canvas_html,
+                height=820,
+                frame_style=(
+                    "border:1px solid #e3e3e3;border-radius:8px;padding:18px;"
+                    "background:#fff;font-family:monospace;font-size:18px;"
+                    "line-height:1.9;color:#111;"
+                    # The iframe sees `prefers-color-scheme` independently from the
+                    # parent; this opt-in lets `light-dark()` in the cell colors work.
+                    "color-scheme:light dark;"
+                ),
+                scrolling=True,
+            )
+            st.caption(
+                "Each glyph is the most-likely token at one position. "
+                "<span style='background:rgb(220,245,230);color:#111;padding:0 3px;"
+                "border-radius:3px'>"
+                "Green</span> intensity ∝ its probability — pale = uncertain, "
+                "<span style='background:rgb(22,163,74);color:#fff;padding:0 3px;border-radius:3px'>"
+                "super green</span> = committed (p≈1). "
+                "<span style='background:rgb(37,99,235);color:#fff;padding:0 3px;border-radius:3px'>"
+                "Blue</span> = injected/pinned (dashed border = steered this very step). "
+                "<span style='color:#ef4444'>Red box</span> = the focused position.",
+                unsafe_allow_html=True,
+            )
     
             st.divider()
             st.markdown("#### Streaming-process diagnostics")
