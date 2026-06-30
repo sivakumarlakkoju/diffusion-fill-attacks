@@ -1,6 +1,6 @@
-# diffusion_fill_attacks
+# Diffusion Fill Attacks
 
-Fill-attack experiments against Google's **DiffusionGemma-26B-A4B-it**, a discrete-diffusion MoE LLM.
+Fill-attack experiments against Google's **DiffusionGemma-26B-A4B-it**, a discrete-diffusion MoE LLM. Fill attacks are interesting on DiffusionGemma as it gives access to the whole Canvas of tokens (so attacks can be anywhere on the canvas) rather than the first few tokens as in Autoregressive models
 
 ## Setup
 
