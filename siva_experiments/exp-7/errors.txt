@@ -1,0 +1,6 @@
+FAILED: p0000_pin_concrete_say
+FAILED: p0000_pin_multispan_list
+FAILED: p0000_perturb_multispan_list
+FAILED: p0001_pin_concrete_say
+FAILED: p0001_pin_multispan_list
+FAILED: p0001_perturb_multispan_list
